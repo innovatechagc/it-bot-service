@@ -143,8 +143,9 @@ options:
   # Enable Docker layer caching
   env:
     - 'DOCKER_BUILDKIT=1'
-  # Increase timeout for large builds
-  timeout: '1200s'
+
+# Build timeout (at root level)
+timeout: '1200s'
 
 # Build artifacts
 artifacts:

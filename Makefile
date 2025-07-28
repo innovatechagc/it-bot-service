@@ -1,49 +1,39 @@
-# Makefile para el template de microservicio Go
+# Makefile para Bot Service
 
-.PHONY: help build run test clean docker-build docker-run docker-test lint format deps upgrade-deps
+.PHONY: help build run test clean docker-build docker-run docker-test deps lint format swagger deploy-staging deploy-prod sample-data
 
 # Variables
-APP_NAME=microservice-template
-DOCKER_IMAGE=$(APP_NAME):latest
-DOCKER_TEST_IMAGE=$(APP_NAME):test
-MIGRATION_DIR=./migrations
+BINARY_NAME=bot-service
+DOCKER_IMAGE=bot-service
+GO_VERSION=1.21
+PROJECT_ID ?= $(shell gcloud config get-value project)
+REGION ?= us-central1
 
 help: ## Mostrar ayuda
-	@echo "Comandos disponibles:"
+	@echo "Bot Service - Comandos disponibles:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 deps: ## Instalar dependencias
 	go mod download
 	go mod tidy
 
-upgrade-deps: ## Actualizar dependencias
-	go get -u ./...
-	go mod tidy
-
 build: ## Compilar la aplicación
-	go build -o bin/$(APP_NAME) .
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o $(BINARY_NAME) .
 
-run: ## Ejecutar la aplicación localmente
+run: ## Ejecutar la aplicación
 	go run .
 
-run-prod: ## Ejecutar con configuración de producción
-	ENVIRONMENT=production go run .
+test: ## Ejecutar tests
+	go test -v ./...
 
-test: ## Ejecutar tests unitarios
-	go test ./internal/... -v -race -coverprofile=coverage.out
-
-test-integration: ## Ejecutar tests de integración
-	go test ./tests/integration/... -v -race
-
-test-e2e: ## Ejecutar tests end-to-end
-	go test ./tests/e2e/... -v -race
-
-test-all: ## Ejecutar todos los tests
-	go test ./... -v -race -coverprofile=coverage.out
-
-test-coverage: test-all ## Ejecutar tests y mostrar cobertura
+test-coverage: ## Ejecutar tests con cobertura
+	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
-	@echo "Reporte de cobertura generado en coverage.html"
+
+clean: ## Limpiar archivos generados
+	go clean
+	rm -f $(BINARY_NAME)
+	rm -f coverage.out coverage.html
 
 lint: ## Ejecutar linter
 	golangci-lint run
@@ -52,89 +42,83 @@ format: ## Formatear código
 	go fmt ./...
 	goimports -w .
 
-clean: ## Limpiar archivos generados
-	rm -rf bin/
-	rm -f coverage.out coverage.html
+swagger: ## Generar documentación Swagger
+	swag init
 
-# Database migrations
-migrate-create: ## Crear nueva migración (uso: make migrate-create NAME=create_users_table)
-	migrate create -ext sql -dir $(MIGRATION_DIR) -seq $(NAME)
-
-migrate-up: ## Ejecutar migraciones de base de datos
-	migrate -path $(MIGRATION_DIR) -database "$(DATABASE_URL)" up
-
-migrate-down: ## Revertir última migración
-	migrate -path $(MIGRATION_DIR) -database "$(DATABASE_URL)" down 1
-
-migrate-force: ## Forzar versión de migración (uso: make migrate-force VERSION=1)
-	migrate -path $(MIGRATION_DIR) -database "$(DATABASE_URL)" force $(VERSION)
-
-seed: ## Ejecutar seeds de base de datos
-	@echo "Ejecutando seeds..."
-	go run scripts/seed.go
+sample-data: ## Crear datos de ejemplo
+	go run scripts/sample_data.go
 
 # Docker commands
 docker-build: ## Construir imagen Docker
 	docker build -t $(DOCKER_IMAGE) .
 
-docker-run: ## Ejecutar con Docker
+docker-run: ## Ejecutar contenedor Docker
 	docker run -p 8080:8080 --env-file .env.local $(DOCKER_IMAGE)
 
-docker-test: ## Ejecutar tests con Docker
+docker-dev: ## Levantar entorno de desarrollo completo
+	docker-compose up -d
+
+docker-down: ## Detener entorno de desarrollo
+	docker-compose down
+
+docker-test: ## Ejecutar tests en Docker
 	docker-compose -f docker-compose.test.yml up --build --abort-on-container-exit
 
-docker-dev: ## Levantar entorno de desarrollo completo
-	docker-compose up --build
+# GCP Deployment commands
+setup-gcp: ## Configurar recursos de GCP
+	@echo "Configurando recursos de GCP para bot-service..."
+	@./scripts/setup-gcp.sh $(PROJECT_ID) $(REGION)
 
-docker-down: ## Detener contenedores
-	docker-compose down -v
+deploy-staging: ## Deploy a staging usando Cloud Build
+	@echo "Desplegando bot-service a staging..."
+	@./scripts/deploy.sh staging $(PROJECT_ID) $(REGION)
 
-docker-logs: ## Ver logs de contenedores
-	docker-compose logs -f
+deploy-prod: ## Deploy a producción usando Cloud Build
+	@echo "Desplegando bot-service a producción..."
+	@./scripts/deploy.sh production $(PROJECT_ID) $(REGION)
 
-# GCP Cloud Run deployment
-gcp-build: ## Construir imagen en GCP
-	gcloud builds submit --tag gcr.io/$(PROJECT_ID)/$(APP_NAME):latest
+deploy-staging-direct: ## Deploy directo a staging (sin Cloud Build)
+	gcloud builds submit --config cloudbuild.yaml \
+		--substitutions _ENVIRONMENT=staging,_REGION=$(REGION) \
+		--project $(PROJECT_ID)
 
-deploy-staging: ## Deploy a staging en Cloud Run
-	gcloud run deploy $(APP_NAME)-staging \
-		--image gcr.io/$(PROJECT_ID)/$(APP_NAME):latest \
-		--platform managed \
-		--region us-central1 \
-		--allow-unauthenticated \
-		--set-env-vars ENVIRONMENT=test \
-		--set-secrets="JWT_SECRET=jwt-secret:latest,DB_PASSWORD=db-password:latest"
+deploy-prod-direct: ## Deploy directo a producción (sin Cloud Build)
+	gcloud builds submit --config cloudbuild.yaml \
+		--substitutions _ENVIRONMENT=production,_REGION=$(REGION) \
+		--project $(PROJECT_ID)
 
-deploy-prod: ## Deploy a producción en Cloud Run
-	gcloud run deploy $(APP_NAME) \
-		--image gcr.io/$(PROJECT_ID)/$(APP_NAME):latest \
-		--platform managed \
-		--region us-central1 \
-		--allow-unauthenticated \
-		--set-env-vars ENVIRONMENT=production \
-		--set-secrets="JWT_SECRET=jwt-secret-prod:latest,DB_PASSWORD=db-password-prod:latest"
+# Monitoring and maintenance
+logs-staging: ## Ver logs de staging
+	gcloud run services logs tail bot-service-staging --region=$(REGION) --project=$(PROJECT_ID)
 
-# Swagger
-swagger: ## Generar documentación Swagger
-	swag init -g main.go
+logs-prod: ## Ver logs de producción
+	gcloud run services logs tail bot-service-production --region=$(REGION) --project=$(PROJECT_ID)
 
-# Security
-security-scan: ## Ejecutar escaneo de seguridad
-	gosec ./...
+status-staging: ## Ver estado del servicio en staging
+	gcloud run services describe bot-service-staging --region=$(REGION) --project=$(PROJECT_ID)
 
-# Performance
-benchmark: ## Ejecutar benchmarks
-	go test -bench=. -benchmem ./...
+status-prod: ## Ver estado del servicio en producción
+	gcloud run services describe bot-service-production --region=$(REGION) --project=$(PROJECT_ID)
 
-# Monitoring
-metrics: ## Ver métricas de la aplicación
-	curl http://localhost:8080/metrics
+scale-staging: ## Escalar servicio en staging (uso: make scale-staging MIN=1 MAX=5)
+	gcloud run services update bot-service-staging \
+		--min-instances=$(MIN) --max-instances=$(MAX) \
+		--region=$(REGION) --project=$(PROJECT_ID)
 
-health: ## Verificar health de la aplicación
-	curl http://localhost:8080/api/v1/health
+scale-prod: ## Escalar servicio en producción (uso: make scale-prod MIN=2 MAX=20)
+	gcloud run services update bot-service-production \
+		--min-instances=$(MIN) --max-instances=$(MAX) \
+		--region=$(REGION) --project=$(PROJECT_ID)
 
-# Development helpers
-dev-setup: deps docker-dev migrate-up seed ## Setup completo para desarrollo
-	@echo "Entorno de desarrollo listo!"
+# Testing endpoints
+test-staging: ## Probar endpoints en staging
+	@echo "Probando bot-service en staging..."
+	@STAGING_URL=$$(gcloud run services describe bot-service-staging --region=$(REGION) --project=$(PROJECT_ID) --format='value(status.url)'); \
+	curl -f "$$STAGING_URL/api/v1/health" && echo "✓ Health check OK" || echo "✗ Health check failed"; \
+	curl -f "$$STAGING_URL/api/v1/ready" && echo "✓ Ready check OK" || echo "✗ Ready check failed"
 
-dev-reset: docker-down clean dev-setup ## Reset completo del entorno de desarrollo
+test-prod: ## Probar endpoints en producción
+	@echo "Probando bot-service en producción..."
+	@PROD_URL=$$(gcloud run services describe bot-service-production --region=$(REGION) --project=$(PROJECT_ID) --format='value(status.url)'); \
+	curl -f "$$PROD_URL/api/v1/health" && echo "✓ Health check OK" || echo "✗ Health check failed"; \
+	curl -f "$$PROD_URL/api/v1/ready" && echo "✓ Ready check OK" || echo "✗ Ready check failed"
