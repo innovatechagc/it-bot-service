@@ -143,6 +143,8 @@ options:
   # Enable Docker layer caching
   env:
     - 'DOCKER_BUILDKIT=1'
+  # Configure logging behavior (required when using service account)
+  logging: 'CLOUD_LOGGING_ONLY'
 
 # Build timeout (at root level)
 timeout: '1200s'
