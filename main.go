@@ -2,19 +2,19 @@ package main
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/company/microservice-template/internal/config"
-	"github.com/company/microservice-template/internal/handlers"
-	"github.com/company/microservice-template/internal/middleware"
-	"github.com/company/microservice-template/internal/services"
-	"github.com/company/microservice-template/pkg/logger"
-	"github.com/company/microservice-template/pkg/vault"
+	"github.com/company/bot-service/internal/ai"
+	"github.com/company/bot-service/internal/config"
+	"github.com/company/bot-service/internal/handlers"
+	"github.com/company/bot-service/internal/middleware"
+	"github.com/company/bot-service/internal/repositories"
+	"github.com/company/bot-service/internal/services"
+	"github.com/company/bot-service/pkg/logger"
 	"github.com/gin-gonic/gin"
 )
 
@@ -36,9 +36,46 @@ func main() {
 	// 	logger.Fatal("Failed to initialize Vault client", err)
 	// }
 	
+	// Inicializar cliente de IA
+	aiClient := ai.NewMockAIClient([]string{
+		"Hello! How can I help you today?",
+		"I understand your question. Let me help you with that.",
+		"Thank you for your message. Is there anything else I can assist you with?",
+	}, logger)
+	
+	// Inicializar repositorios (usando mocks para desarrollo)
+	botRepo := repositories.NewMockBotRepository()
+	flowRepo := repositories.NewMockBotFlowRepository()
+	stepRepo := repositories.NewMockBotStepRepository()
+	smartReplyRepo := repositories.NewMockSmartReplyRepository()
+	sessionRepo := repositories.NewMockConversationSessionRepository()
+	
 	// Inicializar servicios
 	healthService := services.NewHealthService()
-	// exampleService := services.NewExampleService(vaultClient, logger)
+	conversationService := services.NewConversationService(sessionRepo, logger)
+	smartReplyService := services.NewSmartReplyService(smartReplyRepo, aiClient, logger)
+	botFlowService := services.NewBotFlowService(flowRepo, stepRepo, logger)
+	botStepService := services.NewBotStepService(stepRepo, logger)
+	botService := services.NewBotService(
+		botRepo,
+		flowRepo,
+		stepRepo,
+		sessionRepo,
+		smartReplyRepo,
+		conversationService,
+		smartReplyService,
+		logger,
+	)
+	
+	// Inicializar handlers
+	botHandler := handlers.NewBotHandler(
+		botService,
+		botFlowService,
+		botStepService,
+		smartReplyService,
+		conversationService,
+		logger,
+	)
 	
 	// Configurar Gin
 	if cfg.Environment == "production" {
@@ -52,7 +89,7 @@ func main() {
 	router.Use(middleware.Metrics())
 	
 	// Rutas
-	handlers.SetupRoutes(router, healthService, logger)
+	handlers.SetupRoutes(router, healthService, botHandler, logger)
 	
 	// Servidor HTTP
 	srv := &http.Server{
@@ -62,7 +99,7 @@ func main() {
 	
 	// Iniciar servidor en goroutine
 	go func() {
-		logger.Info("Starting server on port " + cfg.Port)
+		logger.Info("Starting bot-service on port " + cfg.Port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatal("Failed to start server", err)
 		}

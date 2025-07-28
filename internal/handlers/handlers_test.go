@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/company/microservice-template/internal/services"
-	"github.com/company/microservice-template/pkg/logger"
+	"github.com/company/bot-service/internal/services"
+	"github.com/company/bot-service/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )

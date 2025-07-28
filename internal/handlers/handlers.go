@@ -3,10 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/company/microservice-template/internal/domain"
-	"github.com/company/microservice-template/internal/middleware"
-	"github.com/company/microservice-template/internal/services"
-	"github.com/company/microservice-template/pkg/logger"
+	"github.com/company/bot-service/internal/domain"
+	"github.com/company/bot-service/internal/middleware"
+	"github.com/company/bot-service/internal/services"
+	"github.com/company/bot-service/pkg/logger"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -17,7 +17,7 @@ type Handler struct {
 	logger        logger.Logger
 }
 
-func SetupRoutes(router *gin.Engine, healthService services.HealthService, logger logger.Logger) {
+func SetupRoutes(router *gin.Engine, healthService services.HealthService, botHandler *BotHandler, logger logger.Logger) {
 	h := &Handler{
 		healthService: healthService,
 		logger:        logger,
@@ -32,6 +32,11 @@ func SetupRoutes(router *gin.Engine, healthService services.HealthService, logge
 		// Health check
 		api.GET("/health", h.HealthCheck)
 		api.GET("/ready", h.ReadinessCheck)
+		
+		// Bot routes
+		if botHandler != nil {
+			SetupBotRoutes(api, botHandler)
+		}
 		
 		// Example routes (comentadas para testing)
 		// api.GET("/example", h.GetExample)

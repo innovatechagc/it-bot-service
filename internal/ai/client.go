@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/company/microservice-template/pkg/logger"
+	"github.com/company/bot-service/pkg/logger"
 )
 
 // AIClient interface genérico para clientes de IA

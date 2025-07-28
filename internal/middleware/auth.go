@@ -2,9 +2,8 @@ package middleware
 
 import (
 	"net/http"
-	"strings"
 
-	"github.com/company/microservice-template/internal/auth"
+	"github.com/company/bot-service/internal/auth"
 	"github.com/gin-gonic/gin"
 )
 

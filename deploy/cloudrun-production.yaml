@@ -1,25 +1,41 @@
+# Cloud Run deployment configuration for bot-service production environment
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: microservice-template
+  name: bot-service-production
+  labels:
+    cloud.googleapis.com/location: us-central1
+    service: bot-service
+    environment: production
   annotations:
     run.googleapis.com/ingress: all
     run.googleapis.com/execution-environment: gen2
+    run.googleapis.com/description: "Bot Service - Production Environment"
 spec:
   template:
     metadata:
+      labels:
+        service: bot-service
+        environment: production
+        version: "latest"
       annotations:
-        autoscaling.knative.dev/maxScale: "100"
         autoscaling.knative.dev/minScale: "2"
+        autoscaling.knative.dev/maxScale: "20"
         run.googleapis.com/cpu-throttling: "false"
         run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/vpc-access-connector: projects/PROJECT_ID/locations/us-central1/connectors/bot-service-connector
+        run.googleapis.com/vpc-access-egress: private-ranges-only
     spec:
       containerConcurrency: 100
       timeoutSeconds: 300
+      serviceAccountName: bot-service@PROJECT_ID.iam.gserviceaccount.com
       containers:
-      - image: gcr.io/PROJECT_ID/microservice-template:latest
+      - image: us-central1-docker.pkg.dev/PROJECT_ID/bot-service-repo/bot-service:latest
+        name: bot-service
         ports:
-        - containerPort: 8080
+        - name: http1
+          containerPort: 8080
+          protocol: TCP
         env:
         - name: ENVIRONMENT
           value: "production"
@@ -27,42 +43,81 @@ spec:
           value: "8080"
         - name: LOG_LEVEL
           value: "warn"
-        - name: JWT_SECRET
+        - name: DB_HOST
+          value: "10.0.1.10"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "bot_service_production"
+        - name: DB_USER
+          value: "bot_service_user"
+        - name: DB_SSL_MODE
+          value: "require"
+        - name: REDIS_HOST
+          value: "10.0.1.20"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: latest
-              name: jwt-secret-prod
+              name: openai-api-key
+        - name: VERTEX_AI_PROJECT
+          value: "PROJECT_ID"
+        - name: VERTEX_AI_LOCATION
+          value: "us-central1"
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: latest
-              name: db-password-prod
-        - name: VAULT_TOKEN
+              name: database-password-production
+        - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               key: latest
-              name: vault-token-prod
-        - name: EXTERNAL_API_KEY
+              name: redis-password-production
+        - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
               key: latest
-              name: external-api-key-prod
+              name: jwt-secret-production
         resources:
           limits:
             cpu: "2"
-            memory: "1Gi"
+            memory: "2Gi"
           requests:
             cpu: "1"
-            memory: "512Mi"
+            memory: "1Gi"
         livenessProbe:
           httpGet:
             path: /api/v1/health
             port: 8080
+            httpHeaders:
+            - name: User-Agent
+              value: "GoogleHC/1.0"
           initialDelaySeconds: 30
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /api/v1/ready
             port: 8080
+            httpHeaders:
+            - name: User-Agent
+              value: "GoogleHC/1.0"
           initialDelaySeconds: 5
           periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+  traffic:
+  - percent: 100
+    latestRevision: true

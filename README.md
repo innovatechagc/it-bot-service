@@ -1,17 +1,21 @@
-# Template de Microservicio Go
+# Bot Service - Servicio de Orquestación Conversacional
 
-Template estandarizado para crear microservicios en Go que se despliegan en GCP Cloud Run. Incluye configuración para desarrollo local, testing, QA y producción.
+Microservicio especializado en la orquestación conversacional del sistema, gestionando la lógica de los bots, los flujos de conversación, reglas, respuestas automáticas, y acciones basadas en IA o reglas predefinidas. Este microservicio se comunica directamente con el messaging-service y con servicios de IA (como Vertex AI o OpenAI).
 
-## 🚀 Características
+## 🚀 Características del Bot Service
 
+- **Orquestación Conversacional**: Gestión completa de flujos de conversación
+- **Respuestas Automáticas**: Basadas en flujos predefinidos y reglas
+- **Integración con IA**: Soporte para OpenAI, Vertex AI y otros proveedores
+- **Multicanal**: Soporte para Web, WhatsApp, Telegram, Slack
+- **Sesiones de Conversación**: Manejo de contexto y estado por usuario
+- **Smart Replies**: Respuestas inteligentes basadas en intents
 - **Framework**: Gin para HTTP server
 - **Logging**: Zap logger estructurado
 - **Métricas**: Prometheus integrado
-- **Secretos**: Integración con HashiCorp Vault
-- **Documentación**: Swagger/OpenAPI
+- **Documentación**: Swagger/OpenAPI completa
 - **Testing**: Tests unitarios y de integración
 - **Docker**: Multi-stage builds optimizados
-- **CI/CD**: Configuración para diferentes entornos
 
 ## 📁 Estructura del Proyecto
 
@@ -116,17 +120,42 @@ make docker-test
 make lint
 ```
 
-## 📊 Endpoints Disponibles
+## 📊 API Endpoints del Bot Service
 
 ### Health Checks
 - `GET /api/v1/health` - Estado del servicio
 - `GET /api/v1/ready` - Readiness check
 
-### Métricas
-- `GET /metrics` - Métricas de Prometheus
+### 🤖 Gestión de Bots
+- `GET /api/v1/bots` - Lista bots por usuario o tenant
+- `GET /api/v1/bots/:id` - Detalle de un bot específico
+- `POST /api/v1/bots` - Crear nuevo bot
+- `PATCH /api/v1/bots/:id` - Editar bot existente
+- `DELETE /api/v1/bots/:id` - Eliminar o desactivar bot
 
-### Documentación
-- `GET /swagger/index.html` - Documentación Swagger
+### 🔀 Gestión de Flujos
+- `GET /api/v1/bots/:id/flows` - Lista flujos del bot
+- `POST /api/v1/bots/:id/flows` - Crear flujo conversacional
+- `GET /api/v1/flows/:id` - Obtener un flujo con sus pasos
+- `PATCH /api/v1/flows/:id` - Editar un flujo
+- `DELETE /api/v1/flows/:id` - Eliminar un flujo
+
+### 🧩 Gestión de Pasos
+- `POST /api/v1/flows/:id/steps` - Agregar paso a un flujo
+- `PATCH /api/v1/steps/:id` - Editar paso
+- `DELETE /api/v1/steps/:id` - Eliminar paso
+
+### 🧠 IA / Smart Replies
+- `POST /api/v1/bots/:id/smart-reply` - Consulta rápida a IA (prompt + contexto)
+- `POST /api/v1/bots/:id/intents/train` - Entrenar respuestas automáticas
+- `GET /api/v1/bots/:id/intents` - Listar intents configurados
+
+### 📨 Procesamiento de Mensajes
+- `POST /api/v1/incoming` - Recibe mensaje entrante desde messaging-service y responde según flujo
+
+### Métricas y Documentación
+- `GET /metrics` - Métricas de Prometheus
+- `GET /swagger/index.html` - Documentación Swagger completa
 
 ## 🔧 Configuración por Entornos
 

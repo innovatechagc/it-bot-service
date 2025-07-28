@@ -1,68 +1,114 @@
+# Cloud Run deployment configuration for bot-service staging environment
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  name: microservice-template-staging
+  name: bot-service-staging
+  labels:
+    cloud.googleapis.com/location: us-central1
+    service: bot-service
+    environment: staging
   annotations:
     run.googleapis.com/ingress: all
     run.googleapis.com/execution-environment: gen2
+    run.googleapis.com/description: "Bot Service - Staging Environment"
 spec:
   template:
     metadata:
+      labels:
+        service: bot-service
+        environment: staging
+        version: "latest"
       annotations:
-        autoscaling.knative.dev/maxScale: "10"
-        autoscaling.knative.dev/minScale: "1"
-        run.googleapis.com/cpu-throttling: "false"
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "5"
+        run.googleapis.com/cpu-throttling: "true"
         run.googleapis.com/execution-environment: gen2
+        run.googleapis.com/vpc-access-connector: projects/PROJECT_ID/locations/us-central1/connectors/bot-service-connector
+        run.googleapis.com/vpc-access-egress: private-ranges-only
     spec:
-      containerConcurrency: 100
+      containerConcurrency: 80
       timeoutSeconds: 300
+      serviceAccountName: bot-service@PROJECT_ID.iam.gserviceaccount.com
       containers:
-      - image: gcr.io/PROJECT_ID/microservice-template:latest
+      - image: us-central1-docker.pkg.dev/PROJECT_ID/bot-service-repo/bot-service:latest
+        name: bot-service
         ports:
-        - containerPort: 8080
+        - name: http1
+          containerPort: 8080
+          protocol: TCP
         env:
         - name: ENVIRONMENT
-          value: "test"
+          value: "staging"
         - name: PORT
           value: "8080"
         - name: LOG_LEVEL
-          value: "info"
-        - name: JWT_SECRET
+          value: "debug"
+        - name: DB_HOST
+          value: "10.0.0.10"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "bot_service_staging"
+        - name: DB_USER
+          value: "bot_service_user"
+        - name: DB_SSL_MODE
+          value: "require"
+        - name: REDIS_HOST
+          value: "10.0.0.20"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: OPENAI_API_KEY
           valueFrom:
             secretKeyRef:
               key: latest
-              name: jwt-secret-staging
+              name: openai-api-key
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               key: latest
-              name: db-password-staging
-        - name: VAULT_TOKEN
+              name: database-password-staging
+        - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
               key: latest
-              name: vault-token-staging
-        - name: EXTERNAL_API_KEY
-          valueFrom:
-            secretKeyRef:
-              key: latest
-              name: external-api-key-staging
+              name: redis-password-staging
         resources:
           limits:
             cpu: "1"
-            memory: "512Mi"
+            memory: "1Gi"
           requests:
             cpu: "0.5"
-            memory: "256Mi"
+            memory: "512Mi"
         livenessProbe:
           httpGet:
             path: /api/v1/health
             port: 8080
+            httpHeaders:
+            - name: User-Agent
+              value: "GoogleHC/1.0"
           initialDelaySeconds: 30
           periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /api/v1/ready
             port: 8080
+            httpHeaders:
+            - name: User-Agent
+              value: "GoogleHC/1.0"
           initialDelaySeconds: 5
           periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 30
+  traffic:
+  - percent: 100
+    latestRevision: true
