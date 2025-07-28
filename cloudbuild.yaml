@@ -1,87 +1,87 @@
 # Cloud Build configuration for bot-service deployment to Cloud Run
 steps:
   # Step 1: Run tests
-  - name: 'golang:1.21'
-    entrypoint: 'bash'
+  - name: "golang:1.21"
+    entrypoint: "bash"
     args:
-      - '-c'
+      - "-c"
       - |
         go mod download
         go test ./... -v
     env:
-      - 'CGO_ENABLED=0'
-      - 'GOOS=linux'
-    id: 'test'
+      - "CGO_ENABLED=0"
+      - "GOOS=linux"
+    id: "test"
 
   # Step 2: Build Docker image
-  - name: 'gcr.io/cloud-builders/docker'
+  - name: "gcr.io/cloud-builders/docker"
     args:
-      - 'build'
-      - '-t'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}'
-      - '-t'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:latest'
-      - '.'
-    id: 'build'
-    waitFor: ['test']
+      - "build"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}"
+      - "-t"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:latest"
+      - "."
+    id: "build"
+    waitFor: ["test"]
 
   # Step 3: Push image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
+  - name: "gcr.io/cloud-builders/docker"
     args:
-      - 'push'
-      - '--all-tags'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service'
-    id: 'push'
-    waitFor: ['build']
+      - "push"
+      - "--all-tags"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service"
+    id: "push"
+    waitFor: ["build"]
 
-  # Step 4: Deploy to Cloud Run (Staging)
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
+  # Step 4: Deploy to Cloud Run
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "gcloud"
     args:
-      - 'run'
-      - 'deploy'
-      - 'bot-service-${_ENVIRONMENT}'
-      - '--image'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}'
-      - '--region'
-      - '${_REGION}'
-      - '--platform'
-      - 'managed'
-      - '--allow-unauthenticated'
-      - '--port'
-      - '8080'
-      - '--memory'
-      - '${_MEMORY}'
-      - '--cpu'
-      - '${_CPU}'
-      - '--min-instances'
-      - '${_MIN_INSTANCES}'
-      - '--max-instances'
-      - '${_MAX_INSTANCES}'
-      - '--concurrency'
-      - '${_CONCURRENCY}'
-      - '--timeout'
-      - '${_TIMEOUT}'
-      - '--set-env-vars'
-      - 'ENVIRONMENT=${_ENVIRONMENT},LOG_LEVEL=${_LOG_LEVEL},PORT=8080'
-      - '--set-secrets'
-      - 'OPENAI_API_KEY=${_OPENAI_SECRET}:latest,DB_PASSWORD=${_DB_SECRET}:latest'
-      - '--vpc-connector'
-      - '${_VPC_CONNECTOR}'
-      - '--vpc-egress'
-      - 'private-ranges-only'
-      - '--service-account'
-      - '${_SERVICE_ACCOUNT}'
-      - '--labels'
-      - 'service=bot-service,environment=${_ENVIRONMENT},version=${SHORT_SHA}'
-    id: 'deploy'
-    waitFor: ['push']
+      - "run"
+      - "deploy"
+      - "bot-service-${_ENVIRONMENT}"
+      - "--image"
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}"
+      - "--region"
+      - "${_REGION}"
+      - "--platform"
+      - "managed"
+      - "--allow-unauthenticated"
+      - "--port"
+      - "8080"
+      - "--memory"
+      - "${_MEMORY}"
+      - "--cpu"
+      - "${_CPU}"
+      - "--min-instances"
+      - "${_MIN_INSTANCES}"
+      - "--max-instances"
+      - "${_MAX_INSTANCES}"
+      - "--concurrency"
+      - "${_CONCURRENCY}"
+      - "--timeout"
+      - "${_TIMEOUT}"
+      - "--set-env-vars"
+      - "ENVIRONMENT=${_ENVIRONMENT},LOG_LEVEL=${_LOG_LEVEL},PORT=8080"
+      - "--set-secrets"
+      - "OPENAI_API_KEY=${_OPENAI_SECRET}:latest,DB_PASSWORD=${_DB_SECRET}:latest"
+      - "--vpc-connector"
+      - "${_VPC_CONNECTOR}"
+      - "--vpc-egress"
+      - "private-ranges-only"
+      - "--service-account"
+      - "${_SERVICE_ACCOUNT}"
+      - "--labels"
+      - "service=bot-service,environment=${_ENVIRONMENT},version=${SHORT_SHA}"
+    id: "deploy"
+    waitFor: ["push"]
 
   # Step 5: Update traffic (only for production)
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
     args:
-      - '-c'
+      - "-c"
       - |
         if [ "${_ENVIRONMENT}" = "production" ]; then
           gcloud run services update-traffic bot-service-${_ENVIRONMENT} \
@@ -90,73 +90,71 @@ steps:
         else
           echo "Skipping traffic update for ${_ENVIRONMENT} environment"
         fi
-    id: 'update-traffic'
-    waitFor: ['deploy']
+    id: "update-traffic"
+    waitFor: ["deploy"]
 
   # Step 6: Run health check
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: "bash"
     args:
-      - '-c'
+      - "-c"
       - |
-        # Get service URL
-        SERVICE_URL=$(gcloud run services describe bot-service-${_ENVIRONMENT} \
-          --region=${_REGION} \
-          --format='value(status.url)')
-        
-        echo "Service URL: $SERVICE_URL"
-        
         # Wait for service to be ready
         sleep 30
-        
+
+        # Get service URL and run health checks
+        SERVICE_URL=$$(gcloud run services describe bot-service-${_ENVIRONMENT} --region=${_REGION} --format='value(status.url)')
+        echo "Testing service at: $$SERVICE_URL"
+
         # Health check
-        curl -f "$SERVICE_URL/api/v1/health" || exit 1
-        echo "Health check passed!"
-        
+        curl -f "$$SERVICE_URL/api/v1/health" || exit 1
+        echo "✓ Health check passed!"
+
         # Readiness check
-        curl -f "$SERVICE_URL/api/v1/ready" || exit 1
-        echo "Readiness check passed!"
-    id: 'health-check'
-    waitFor: ['update-traffic']
+        curl -f "$$SERVICE_URL/api/v1/ready" || exit 1
+        echo "✓ Readiness check passed!"
+    id: "health-check"
+    waitFor: ["update-traffic"]
 
 # Substitution variables with defaults
 substitutions:
-  _REGION: 'us-central1'
-  _REPOSITORY: 'bot-service-repo'
-  _ENVIRONMENT: 'staging'
-  _MEMORY: '1Gi'
-  _CPU: '1'
-  _MIN_INSTANCES: '0'
-  _MAX_INSTANCES: '10'
-  _CONCURRENCY: '80'
-  _TIMEOUT: '300'
-  _LOG_LEVEL: 'info'
-  _OPENAI_SECRET: 'openai-api-key'
-  _DB_SECRET: 'database-password'
-  _VPC_CONNECTOR: 'projects/${PROJECT_ID}/locations/${_REGION}/connectors/bot-service-connector'
-  _SERVICE_ACCOUNT: 'bot-service@${PROJECT_ID}.iam.gserviceaccount.com'
+  _SERVICE_NAME: 'it-bot-service'
+  _REGION: "us-east1"
+  _REPOSITORY: "bot-service-repo"
+  _ENVIRONMENT: "staging"
+  _MEMORY: "1Gi"
+  _CPU: "1"
+  _MIN_INSTANCES: "0"
+  _MAX_INSTANCES: "10"
+  _CONCURRENCY: "80"
+  _TIMEOUT: "300"
+  _LOG_LEVEL: "info"
+  _OPENAI_SECRET: "openai-api-key"
+  _DB_SECRET: "database-password"
+  _VPC_CONNECTOR: "projects/${PROJECT_ID}/locations/${_REGION}/connectors/bot-service-connector"
+  _SERVICE_ACCOUNT: "bot-service@${PROJECT_ID}.iam.gserviceaccount.com"
 
 # Build options
 options:
   # Use higher CPU for faster builds
-  machineType: 'E2_HIGHCPU_8'
+  machineType: "E2_HIGHCPU_8"
   # Enable Docker layer caching
   env:
-    - 'DOCKER_BUILDKIT=1'
+    - "DOCKER_BUILDKIT=1"
   # Configure logging behavior (required when using service account)
-  logging: 'CLOUD_LOGGING_ONLY'
+  logging: "CLOUD_LOGGING_ONLY"
 
 # Build timeout (at root level)
-timeout: '1200s'
+timeout: "1200s"
 
 # Build artifacts
 artifacts:
   images:
-    - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}'
-    - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:latest'
+    - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}"
+    - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:latest"
 
 # Build tags for organization
 tags:
-  - 'bot-service'
-  - '${_ENVIRONMENT}'
-  - 'cloud-run'
+  - "bot-service"
+  - "${_ENVIRONMENT}"
+  - "cloud-run"
