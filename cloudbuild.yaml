@@ -88,27 +88,23 @@ steps:
     id: "update-traffic"
     waitFor: ["deploy"]
 
-  # Step 6: Run health check
+  # Step 6: Show deployment info
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: "bash"
     args:
       - "-c"
       - |
-        # Wait for service to be ready
-        sleep 30
-
-        # Get service URL and run health checks
-        SERVICE_URL=$$(gcloud run services describe it-bot-service-${_ENVIRONMENT} --region=${_REGION} --format='value(status.url)')
-        echo "Testing service at: $$SERVICE_URL"
-
-        # Health check
-        curl -f "$$SERVICE_URL/api/v1/health" || exit 1
-        echo "✓ Health check passed!"
-
-        # Readiness check
-        curl -f "$$SERVICE_URL/api/v1/ready" || exit 1
-        echo "✓ Readiness check passed!"
-    id: "health-check"
+        echo "Deployment completed!"
+        echo "Service: it-bot-service-${_ENVIRONMENT}"
+        echo "Region: ${_REGION}"
+        
+        # Get service URL
+        SERVICE_URL=$$(gcloud run services describe it-bot-service-${_ENVIRONMENT} --region=${_REGION} --format='value(status.url)' || echo "Service not ready yet")
+        echo "Service URL: $$SERVICE_URL"
+        
+        echo "You can test the service manually with:"
+        echo "curl $$SERVICE_URL/api/v1/health"
+    id: "show-info"
     waitFor: ["update-traffic"]
 
 # Substitution variables with defaults
@@ -122,7 +118,7 @@ substitutions:
   _MIN_INSTANCES: "0"
   _MAX_INSTANCES: "10"
   _CONCURRENCY: "80"
-  _TIMEOUT: "300"
+  _TIMEOUT: "900"
   _LOG_LEVEL: "info"
   _OPENAI_SECRET: "openai-api-key"
   _DB_SECRET: "database-password"

@@ -29,10 +29,13 @@ RUN apk --no-cache add ca-certificates tzdata
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
-WORKDIR /root/
+WORKDIR /app
 
 # Copiar el binario desde el builder
 COPY --from=builder /app/main .
+
+# Dar permisos de ejecución
+RUN chmod +x main
 
 # Cambiar al usuario no-root
 USER appuser
