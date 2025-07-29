@@ -52,6 +52,7 @@ done
 # Create Artifact Registry repository
 echo -e "${YELLOW}📦 Creating Artifact Registry repository...${NC}"
 if ! gcloud artifacts repositories describe "$REPOSITORY" --location="$REGION" --project="$PROJECT_ID" >/dev/null 2>&1; then
+    echo -e "${YELLOW}Creating repository: $REPOSITORY in region: $REGION${NC}"
     gcloud artifacts repositories create "$REPOSITORY" \
         --repository-format=docker \
         --location="$REGION" \
@@ -61,6 +62,10 @@ if ! gcloud artifacts repositories describe "$REPOSITORY" --location="$REGION" -
 else
     echo -e "${GREEN}✓ Artifact Registry repository already exists${NC}"
 fi
+
+# Verify repository exists
+echo -e "${YELLOW}📋 Verifying repository...${NC}"
+gcloud artifacts repositories list --location="$REGION" --project="$PROJECT_ID" --filter="name:$REPOSITORY"
 
 # Create service account
 echo -e "${YELLOW}🔐 Creating service account...${NC}"
