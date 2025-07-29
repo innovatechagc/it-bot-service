@@ -20,19 +20,19 @@ steps:
     args:
       - "build"
       - "-t"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}"
+      - "gcr.io/${PROJECT_ID}/it-bot-service:${SHORT_SHA}"
       - "-t"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:latest"
+      - "gcr.io/${PROJECT_ID}/it-bot-service:latest"
       - "."
     id: "build"
     waitFor: ["test"]
 
-  # Step 3: Push image to Artifact Registry
+  # Step 3: Push image to GCR
   - name: "gcr.io/cloud-builders/docker"
     args:
       - "push"
       - "--all-tags"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service"
+      - "gcr.io/${PROJECT_ID}/it-bot-service"
     id: "push"
     waitFor: ["build"]
 
@@ -42,9 +42,9 @@ steps:
     args:
       - "run"
       - "deploy"
-      - "bot-service-${_ENVIRONMENT}"
+      - "it-bot-service-${_ENVIRONMENT}"
       - "--image"
-      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}"
+      - "gcr.io/${PROJECT_ID}/it-bot-service:${SHORT_SHA}"
       - "--region"
       - "${_REGION}"
       - "--platform"
@@ -75,7 +75,7 @@ steps:
       - "--service-account"
       - "${_SERVICE_ACCOUNT}"
       - "--labels"
-      - "service=bot-service,environment=${_ENVIRONMENT},version=${SHORT_SHA}"
+      - "service=it-bot-service,environment=${_ENVIRONMENT},version=${SHORT_SHA}"
     id: "deploy"
     waitFor: ["push"]
 
@@ -86,7 +86,7 @@ steps:
       - "-c"
       - |
         if [ "${_ENVIRONMENT}" = "production" ]; then
-          gcloud run services update-traffic bot-service-${_ENVIRONMENT} \
+          gcloud run services update-traffic it-bot-service-${_ENVIRONMENT} \
             --to-latest \
             --region ${_REGION}
         else
@@ -105,7 +105,7 @@ steps:
         sleep 30
 
         # Get service URL and run health checks
-        SERVICE_URL=$$(gcloud run services describe bot-service-${_ENVIRONMENT} --region=${_REGION} --format='value(status.url)')
+        SERVICE_URL=$$(gcloud run services describe it-bot-service-${_ENVIRONMENT} --region=${_REGION} --format='value(status.url)')
         echo "Testing service at: $$SERVICE_URL"
 
         # Health check
@@ -122,7 +122,7 @@ steps:
 substitutions:
   _SERVICE_NAME: "it-bot-service"
   _REGION: "us-east1"
-  _REPOSITORY: "bot-service-repo"
+  _REPOSITORY: "it-bot-service-repo"
   _ENVIRONMENT: "staging"
   _MEMORY: "1Gi"
   _CPU: "1"
@@ -133,8 +133,8 @@ substitutions:
   _LOG_LEVEL: "info"
   _OPENAI_SECRET: "openai-api-key"
   _DB_SECRET: "database-password"
-  _VPC_CONNECTOR: "projects/${PROJECT_ID}/locations/${_REGION}/connectors/bot-service-connector"
-  _SERVICE_ACCOUNT: "bot-service@${PROJECT_ID}.iam.gserviceaccount.com"
+  _VPC_CONNECTOR: "projects/${PROJECT_ID}/locations/${_REGION}/connectors/it-bot-service-connector"
+  _SERVICE_ACCOUNT: "it-bot-service@${PROJECT_ID}.iam.gserviceaccount.com"
 
 # Build options
 options:
@@ -152,11 +152,11 @@ timeout: "1200s"
 # Build artifacts
 artifacts:
   images:
-    - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:${SHORT_SHA}"
-    - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPOSITORY}/bot-service:latest"
+    - "gcr.io/${PROJECT_ID}/it-bot-service:${SHORT_SHA}"
+    - "gcr.io/${PROJECT_ID}/it-bot-service:latest"
 
 # Build tags for organization
 tags:
-  - "bot-service"
+  - "it-bot-service"
   - "${_ENVIRONMENT}"
   - "cloud-run"
