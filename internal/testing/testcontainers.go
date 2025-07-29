@@ -39,16 +39,16 @@ func SetupTestContainers(ctx context.Context) (*TestContainers, error) {
 	}
 	containers.PostgresContainer = postgresContainer
 
-	// Vault Container
+	// Vault Container (usando versión específica)
 	vaultReq := testcontainers.ContainerRequest{
-		Image:        "vault:latest",
+		Image:        "hashicorp/vault:1.15",
 		ExposedPorts: []string{"8200/tcp"},
 		Env: map[string]string{
-			"VAULT_DEV_ROOT_TOKEN_ID":      "test-token",
-			"VAULT_DEV_LISTEN_ADDRESS":     "0.0.0.0:8200",
+			"VAULT_DEV_ROOT_TOKEN_ID":  "test-token",
+			"VAULT_DEV_LISTEN_ADDRESS": "0.0.0.0:8200",
 		},
 		Cmd: []string{"vault", "server", "-dev"},
-		WaitingFor: wait.ForHTTP("/v1/sys/health").WithPort("8200/tcp").WithStartupTimeout(30 * time.Second),
+		WaitingFor: wait.ForHTTP("/v1/sys/health").WithPort("8200/tcp").WithStartupTimeout(60 * time.Second),
 	}
 
 	vaultContainer, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{

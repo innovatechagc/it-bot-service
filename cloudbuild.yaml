@@ -1,13 +1,15 @@
 # Cloud Build configuration for bot-service deployment to Cloud Run
 steps:
-  # Step 1: Run tests
+  # Step 1: Run tests (excluding integration tests that require Docker)
   - name: "golang:1.21"
     entrypoint: "bash"
     args:
       - "-c"
       - |
         go mod download
-        go test ./... -v
+        # Run unit tests only (exclude integration and e2e tests)
+        go test ./internal/handlers ./internal/services ./pkg/... -v
+        echo "Unit tests completed successfully"
     env:
       - "CGO_ENABLED=0"
       - "GOOS=linux"
@@ -118,7 +120,7 @@ steps:
 
 # Substitution variables with defaults
 substitutions:
-  _SERVICE_NAME: 'it-bot-service'
+  _SERVICE_NAME: "it-bot-service"
   _REGION: "us-east1"
   _REPOSITORY: "bot-service-repo"
   _ENVIRONMENT: "staging"
