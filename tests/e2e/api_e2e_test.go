@@ -1,7 +1,6 @@
 package e2e
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -54,7 +53,8 @@ func (suite *E2ETestSuite) SetupSuite() {
 	healthService := services.NewHealthService()
 	logger := logger.NewLogger("debug")
 	
-	handlers.SetupRoutes(suite.router, healthService, logger)
+	// Pass nil for botHandler since we're only testing basic endpoints
+	handlers.SetupRoutes(suite.router, healthService, nil, logger)
 }
 
 func (suite *E2ETestSuite) TearDownSuite() {

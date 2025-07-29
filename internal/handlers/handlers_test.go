@@ -19,7 +19,8 @@ func TestHealthCheck(t *testing.T) {
 	healthService := services.NewHealthService()
 	logger := logger.NewLogger("debug")
 	
-	SetupRoutes(router, healthService, logger)
+	// Pass nil for botHandler since we're only testing health endpoints
+	SetupRoutes(router, healthService, nil, logger)
 	
 	// Test
 	w := httptest.NewRecorder()
@@ -39,7 +40,8 @@ func TestReadinessCheck(t *testing.T) {
 	healthService := services.NewHealthService()
 	logger := logger.NewLogger("debug")
 	
-	SetupRoutes(router, healthService, logger)
+	// Pass nil for botHandler since we're only testing health endpoints
+	SetupRoutes(router, healthService, nil, logger)
 	
 	// Test
 	w := httptest.NewRecorder()

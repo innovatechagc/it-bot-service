@@ -1,49 +1,44 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
 )
 
-const tracerName = "microservice-template"
-
+// Tracing middleware simplificado (sin OpenTelemetry por ahora)
 func Tracing() gin.HandlerFunc {
-	tracer := otel.Tracer(tracerName)
-	
 	return func(c *gin.Context) {
-		// Extract trace context from headers
-		ctx := otel.GetTextMapPropagator().Extract(c.Request.Context(), propagation.HeaderCarrier(c.Request.Header))
+		// Agregar información básica de tracing al contexto
+		start := time.Now()
 		
-		// Start span
-		ctx, span := tracer.Start(ctx, c.Request.Method+" "+c.FullPath(),
-			trace.WithAttributes(
-				attribute.String("http.method", c.Request.Method),
-				attribute.String("http.url", c.Request.URL.String()),
-				attribute.String("http.route", c.FullPath()),
-				attribute.String("http.user_agent", c.Request.UserAgent()),
-				attribute.String("http.remote_addr", c.ClientIP()),
-			),
-		)
-		defer span.End()
-
-		// Add span to context
-		c.Request = c.Request.WithContext(ctx)
+		// Generar un ID de trace simple
+		traceID := generateTraceID()
+		c.Set("trace_id", traceID)
+		c.Header("X-Trace-ID", traceID)
 		
-		// Process request
+		// Procesar request
 		c.Next()
 		
-		// Add response attributes
-		span.SetAttributes(
-			attribute.Int("http.status_code", c.Writer.Status()),
-			attribute.Int("http.response_size", c.Writer.Size()),
-		)
+		// Log básico de tracing (se puede expandir)
+		duration := time.Since(start)
+		c.Set("request_duration", duration)
 		
-		// Set span status based on HTTP status
-		if c.Writer.Status() >= 400 {
-			span.SetAttributes(attribute.Bool("error", true))
-		}
+		// En el futuro se puede integrar con sistemas de tracing reales
 	}
+}
+
+// generateTraceID genera un ID de trace simple
+func generateTraceID() string {
+	return "trace-" + time.Now().Format("20060102150405") + "-" + randomString(8)
+}
+
+// randomString genera una cadena aleatoria simple
+func randomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[time.Now().UnixNano()%int64(len(charset))]
+	}
+	return string(b)
 }

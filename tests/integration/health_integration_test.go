@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/company/bot-service/internal/handlers"
 	"github.com/company/bot-service/internal/services"
@@ -38,7 +37,8 @@ func (suite *IntegrationTestSuite) SetupSuite() {
 	healthService := services.NewHealthService()
 	logger := logger.NewLogger("debug")
 	
-	handlers.SetupRoutes(suite.router, healthService, logger)
+	// Pass nil for botHandler since we're only testing basic endpoints
+	handlers.SetupRoutes(suite.router, healthService, nil, logger)
 }
 
 func (suite *IntegrationTestSuite) TearDownSuite() {
