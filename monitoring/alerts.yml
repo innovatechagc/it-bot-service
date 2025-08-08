@@ -1,15 +1,15 @@
 groups:
-- name: microservice-template-alerts
+- name: it-bot-service-alerts
   rules:
   # Alertas de disponibilidad
   - alert: ServiceDown
-    expr: up{job="microservice-template"} == 0
+    expr: up{job="it-bot-service"} == 0
     for: 1m
     labels:
       severity: critical
     annotations:
-      summary: "Microservice Template está caído"
-      description: "El servicio microservice-template no responde por más de 1 minuto"
+      summary: "IT Bot Service está caído"
+      description: "El servicio it-bot-service no responde por más de 1 minuto"
 
   - alert: HighErrorRate
     expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1

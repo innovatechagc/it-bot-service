@@ -29,6 +29,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./scripts/init-test-tables.sql:/docker-entrypoint-initdb.d/init-test-tables.sql
     networks:
       - microservice-network
     restart: unless-stopped

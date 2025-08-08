@@ -1,0 +1,479 @@
+{
+	"info": {
+		"_postman_id": "bot-service-api-complete",
+		"name": "🤖 Bot Service API - Complete Testing Suite",
+		"description": "Colección completa para probar todas las funcionalidades del Bot Service\n\n## 🚀 Funcionalidades incluidas:\n- 🏥 Health & Monitoring\n- 🤖 Bot Management\n- 🔀 Flow Management\n- 🧩 Step Management\n- 🧠 Smart Replies & AI\n- 📨 Message Processing\n- 🤖 MCP Agent Management\n- ⚡ MCP Task Execution\n- 📊 MCP Monitoring & Context\n- ⚡ Async Task Management\n- 🧪 Testing & Conditionals\n- 🔥 Triggers\n- 🧪 Test Cases\n- 📋 Test Suites\n\n## 🔧 Variables de entorno necesarias:\n- `base_url`: URL base del servicio\n- `bot_id`: ID del bot de prueba\n- `flow_id`: ID del flujo de prueba\n- `step_id`: ID del paso de prueba\n- `ai_agent_id`: ID del agente AI\n- `http_agent_id`: ID del agente HTTP\n- `task_id`: ID de tarea MCP\n- `async_task_id`: ID de tarea asíncrona\n- `conditional_id`: ID del condicional\n- `trigger_id`: ID del trigger\n- `test_case_id`: ID del caso de prueba\n- `test_suite_id`: ID de la suite de pruebas",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🏥 Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "health"]
+						},
+						"description": "Verifica el estado general del servicio"
+					},
+					"response": []
+				},
+				{
+					"name": "Readiness Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ready",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "ready"]
+						},
+						"description": "Verifica si el servicio está listo para recibir tráfico"
+					},
+					"response": []
+				},
+				{
+					"name": "Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/metrics",
+							"host": ["{{base_url}}"],
+							"path": ["metrics"]
+						},
+						"description": "Obtiene métricas de Prometheus"
+					},
+					"response": []
+				},
+				{
+					"name": "Swagger Documentation",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/swagger/index.html",
+							"host": ["{{base_url}}"],
+							"path": ["swagger", "index.html"]
+						},
+						"description": "Documentación Swagger del API"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para verificar el estado del servicio y monitoreo"
+		},
+		{
+			"name": "🤖 Bot Management",
+			"item": [
+				{
+					"name": "List All Bots",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots?owner_id=user-001",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots"],
+							"query": [
+								{
+									"key": "owner_id",
+									"value": "user-001",
+									"description": "ID del propietario de los bots"
+								}
+							]
+						},
+						"description": "Lista todos los bots del usuario autenticado. Requiere owner_id como query parameter o JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bot Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}"]
+						},
+						"description": "Obtiene detalles de un bot específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Bot",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.id) {",
+									"        pm.environment.set('bot_id', response.data.id);",
+									"        console.log('Bot ID saved:', response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Customer Support Bot\",\n    \"description\": \"Bot para atención al cliente\",\n    \"owner_id\": \"user-001\",\n    \"tenant_id\": \"tenant-001\",\n    \"status\": \"active\",\n    \"config\": {\n        \"language\": \"es\",\n        \"timezone\": \"America/Mexico_City\",\n        \"welcome_message\": \"¡Hola! Soy tu asistente virtual.\"\n    },\n    \"metadata\": {\n        \"category\": \"customer-service\",\n        \"version\": \"1.0\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots"]
+						},
+						"description": "Crea un nuevo bot"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Bot",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Customer Support Bot\",\n    \"description\": \"Bot actualizado para atención al cliente\",\n    \"status\": \"active\",\n    \"config\": {\n        \"language\": \"es\",\n        \"timezone\": \"America/Mexico_City\",\n        \"welcome_message\": \"¡Hola! Soy tu asistente virtual actualizado.\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}"]
+						},
+						"description": "Actualiza un bot existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Bot",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}"]
+						},
+						"description": "Elimina un bot"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestionar bots"
+		},
+		{
+			"name": "🔀 Flow Management",
+			"item": [
+				{
+					"name": "List Bot Flows",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/flows",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}", "flows"]
+						},
+						"description": "Lista todos los flujos de un bot"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.id) {",
+									"        pm.environment.set('flow_id', response.data.id);",
+									"        console.log('Flow ID saved:', response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Welcome Flow\",\n    \"description\": \"Flujo de bienvenida para nuevos usuarios\",\n    \"trigger_type\": \"intent\",\n    \"trigger_value\": \"greeting\",\n    \"status\": \"active\",\n    \"priority\": 1,\n    \"config\": {\n        \"max_steps\": 10,\n        \"timeout\": 300,\n        \"fallback_message\": \"Lo siento, no entiendo tu mensaje.\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/flows",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}", "flows"]
+						},
+						"description": "Crea un nuevo flujo conversacional"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flow Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "flows", "{{flow_id}}"]
+						},
+						"description": "Obtiene detalles de un flujo específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Flow",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Welcome Flow\",\n    \"description\": \"Flujo de bienvenida actualizado\",\n    \"status\": \"active\",\n    \"config\": {\n        \"max_steps\": 15,\n        \"timeout\": 600,\n        \"fallback_message\": \"Disculpa, no pude entender tu mensaje. ¿Puedes reformularlo?\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "flows", "{{flow_id}}"]
+						},
+						"description": "Actualiza un flujo existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Flow",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "flows", "{{flow_id}}"]
+						},
+						"description": "Elimina un flujo"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestionar flujos conversacionales"
+		},
+		{
+			"name": "🧩 Step Management",
+			"item": [
+				{
+					"name": "Create Step",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.id) {",
+									"        pm.environment.set('step_id', response.data.id);",
+									"        console.log('Step ID saved:', response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Welcome Message\",\n    \"type\": \"message\",\n    \"order\": 1,\n    \"config\": {\n        \"message\": \"¡Hola! Bienvenido a nuestro servicio. ¿En qué puedo ayudarte?\",\n        \"delay\": 0,\n        \"typing_indicator\": true\n    },\n    \"conditions\": {\n        \"intent\": \"greeting\",\n        \"confidence\": 0.7\n    },\n    \"actions\": [\n        {\n            \"type\": \"send_message\",\n            \"config\": {\n                \"message\": \"¡Hola! Bienvenido a nuestro servicio.\"\n            }\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}/steps",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "flows", "{{flow_id}}", "steps"]
+						},
+						"description": "Agrega un paso a un flujo"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Step",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Updated Welcome Message\",\n    \"config\": {\n        \"message\": \"¡Hola! Bienvenido a nuestro servicio mejorado. ¿En qué puedo ayudarte?\",\n        \"delay\": 1,\n        \"typing_indicator\": true\n    },\n    \"conditions\": {\n        \"intent\": \"greeting\",\n        \"confidence\": 0.8\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/steps/{{step_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "steps", "{{step_id}}"]
+						},
+						"description": "Actualiza un paso existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Step",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/steps/{{step_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "steps", "{{step_id}}"]
+						},
+						"description": "Elimina un paso"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestionar pasos de flujos"
+		},
+		{
+			"name": "🧠 Smart Replies & AI",
+			"item": [
+				{
+					"name": "Smart Reply",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"message\": \"¿Cuáles son los horarios de atención?\",\n    \"context\": {\n        \"user_id\": \"user-001\",\n        \"session_id\": \"session-001\",\n        \"previous_messages\": [\n            {\n                \"role\": \"user\",\n                \"content\": \"Hola\"\n            },\n            {\n                \"role\": \"assistant\",\n                \"content\": \"¡Hola! ¿En qué puedo ayudarte?\"\n            }\n        ]\n    },\n    \"options\": {\n        \"max_tokens\": 150,\n        \"temperature\": 0.7,\n        \"include_intents\": true\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/smart-reply",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}", "smart-reply"]
+						},
+						"description": "Consulta rápida a IA para generar respuesta inteligente"
+					},
+					"response": []
+				},
+				{
+					"name": "Train Intents",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intent_name\": \"horarios_atencion\",\n    \"training_data\": [\n        {\n            \"text\": \"¿Cuáles son los horarios de atención?\",\n            \"response\": \"Nuestros horarios de atención son de lunes a viernes de 9:00 AM a 6:00 PM.\"\n        },\n        {\n            \"text\": \"¿En qué horarios atienden?\",\n            \"response\": \"Atendemos de lunes a viernes de 9:00 AM a 6:00 PM.\"\n        },\n        {\n            \"text\": \"Horarios de servicio\",\n            \"response\": \"Nuestro servicio está disponible de lunes a viernes de 9:00 AM a 6:00 PM.\"\n        }\n    ],\n    \"config\": {\n        \"confidence_threshold\": 0.8,\n        \"fallback_message\": \"Lo siento, no entiendo tu consulta sobre horarios.\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/intents/train",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}", "intents", "train"]
+						},
+						"description": "Entrena respuestas automáticas para intents"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Intents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/intents",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "bots", "{{bot_id}}", "intents"]
+						},
+						"description": "Lista todos los intents configurados para un bot"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para IA y respuestas inteligentes"
+		},
+		{
+			"name": "📨 Message Processing",
+			"item": [
+				{
+					"name": "Process Incoming Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bot_id\": \"{{bot_id}}\",\n    \"user_id\": \"user-001\",\n    \"session_id\": \"session-001\",\n    \"message\": \"Hola, necesito ayuda con mi cuenta\",\n    \"channel\": \"web\",\n    \"metadata\": {\n        \"platform\": \"web\",\n        \"user_agent\": \"Mozilla/5.0...\",\n        \"timestamp\": \"2024-01-15T10:30:00Z\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/incoming",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "incoming"]
+						},
+						"description": "Procesa un mensaje entrante y genera respuesta según el flujo"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para procesamiento de mensajes"
+		}
+	]
+}

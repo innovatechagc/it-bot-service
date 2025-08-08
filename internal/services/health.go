@@ -24,7 +24,7 @@ func (s *healthService) CheckHealth() map[string]interface{} {
 		"status":    "healthy",
 		"timestamp": time.Now().UTC(),
 		"uptime":    time.Since(s.startTime).String(),
-		"service":   "microservice-template",
+		"service":   "it-bot-service",
 		"version":   "1.0.0",
 	}
 }

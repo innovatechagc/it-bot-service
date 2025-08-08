@@ -11,6 +11,7 @@ import (
 	"github.com/company/bot-service/internal/ai"
 	"github.com/company/bot-service/internal/config"
 	"github.com/company/bot-service/internal/handlers"
+	"github.com/company/bot-service/internal/mcp"
 	"github.com/company/bot-service/internal/middleware"
 	"github.com/company/bot-service/internal/repositories"
 	"github.com/company/bot-service/internal/services"
@@ -43,6 +44,15 @@ func main() {
 		"Thank you for your message. Is there anything else I can assist you with?",
 	}, logger)
 	
+	// Inicializar sistema MCP
+	agentFactory := mcp.NewAgentFactory(logger)
+	mcpOrchestrator := mcp.NewOrchestrator(agentFactory, logger)
+	
+	// Iniciar orquestador MCP
+	if err := mcpOrchestrator.Start(context.Background()); err != nil {
+		logger.Fatal("Failed to start MCP orchestrator", err)
+	}
+	
 	// Inicializar repositorios (usando mocks para desarrollo)
 	botRepo := repositories.NewMockBotRepository()
 	flowRepo := repositories.NewMockBotFlowRepository()
@@ -50,12 +60,19 @@ func main() {
 	smartReplyRepo := repositories.NewMockSmartReplyRepository()
 	sessionRepo := repositories.NewMockConversationSessionRepository()
 	
+	// Inicializar repositorios de testing
+	conditionalRepo := repositories.NewMockConditionalRepository()
+	triggerRepo := repositories.NewMockTriggerRepository()
+	testCaseRepo := repositories.NewMockTestCaseRepository()
+	testSuiteRepo := repositories.NewMockTestSuiteRepository()
+	
 	// Inicializar servicios
 	healthService := services.NewHealthService()
 	conversationService := services.NewConversationService(sessionRepo, logger)
-	smartReplyService := services.NewSmartReplyService(smartReplyRepo, aiClient, logger)
+	smartReplyService := services.NewSmartReplyService(smartReplyRepo, aiClient, mcpOrchestrator, logger)
 	botFlowService := services.NewBotFlowService(flowRepo, stepRepo, logger)
 	botStepService := services.NewBotStepService(stepRepo, logger)
+	taskManager := services.NewTaskManager(mcpOrchestrator, logger, 5, 1000)
 	botService := services.NewBotService(
 		botRepo,
 		flowRepo,
@@ -64,8 +81,15 @@ func main() {
 		smartReplyRepo,
 		conversationService,
 		smartReplyService,
+		mcpOrchestrator,
 		logger,
 	)
+	
+	// Inicializar servicios de testing
+	conditionalService := services.NewConditionalService(conditionalRepo, logger)
+	triggerService := services.NewTriggerService(triggerRepo, conditionalService, logger)
+	testService := services.NewTestService(testCaseRepo, botService, conditionalService, triggerService, logger)
+	testSuiteService := services.NewTestSuiteService(testSuiteRepo, testService, logger)
 	
 	// Inicializar handlers
 	botHandler := handlers.NewBotHandler(
@@ -76,6 +100,21 @@ func main() {
 		conversationService,
 		logger,
 	)
+	
+	mcpHandler := handlers.NewMCPHandler(mcpOrchestrator, logger)
+	taskHandler := handlers.NewTaskHandler(taskManager, logger)
+	testHandler := handlers.NewTestHandlers(
+		conditionalService,
+		triggerService,
+		testService,
+		testSuiteService,
+		logger,
+	)
+	
+	// Iniciar task manager
+	if err := taskManager.Start(context.Background()); err != nil {
+		logger.Fatal("Failed to start task manager", err)
+	}
 	
 	// Configurar Gin
 	if cfg.Environment == "production" {
@@ -89,7 +128,7 @@ func main() {
 	router.Use(middleware.Metrics())
 	
 	// Rutas
-	handlers.SetupRoutes(router, healthService, botHandler, logger)
+	handlers.SetupRoutes(router, healthService, botHandler, mcpHandler, taskHandler, testHandler, logger)
 	
 	// Servidor HTTP
 	srv := &http.Server{

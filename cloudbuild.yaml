@@ -129,7 +129,7 @@ steps:
       - |
         echo "🎉 Deployment completed successfully!"
         echo "=================================="
-        
+
         # Staging service info
         echo "📋 STAGING SERVICE:"
         echo "Service: it-bot-service-staging"
@@ -138,7 +138,7 @@ steps:
         echo "URL: $$STAGING_URL"
         echo "Test: curl $$STAGING_URL/api/v1/health"
         echo ""
-        
+
         # Production service info
         echo "🚀 PRODUCTION SERVICE:"
         echo "Service: it-bot-service"
@@ -147,7 +147,7 @@ steps:
         echo "URL: $$PROD_URL"
         echo "Test: curl $$PROD_URL/api/v1/health"
         echo ""
-        
+
         echo "✅ Both services deployed successfully!"
         echo "📊 Summary:"
         echo "- Staging: it-bot-service-staging (1 CPU, 1Gi RAM, 0-5 instances)"

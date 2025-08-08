@@ -1,40 +1,108 @@
-# Bot Service - Servicio de Orquestación Conversacional
+# 🤖 it-bot-service - Orquestador de Agentes y Flujos Conversacionales
 
-Microservicio especializado en la orquestación conversacional del sistema, gestionando la lógica de los bots, los flujos de conversación, reglas, respuestas automáticas, y acciones basadas en IA o reglas predefinidas. Este microservicio se comunica directamente con el messaging-service y con servicios de IA (como Vertex AI o OpenAI).
+Microservicio avanzado de orquestación que combina **gestión de flujos tipo n8n** con **coordinación de agentes MCP** para crear experiencias conversacionales inteligentes y automatizadas. 
 
-## 🚀 Características del Bot Service
+## 🎯 **Propósito Principal**
 
-- **Orquestación Conversacional**: Gestión completa de flujos de conversación
-- **Respuestas Automáticas**: Basadas en flujos predefinidos y reglas
-- **Integración con IA**: Soporte para OpenAI, Vertex AI y otros proveedores
-- **Multicanal**: Soporte para Web, WhatsApp, Telegram, Slack
-- **Sesiones de Conversación**: Manejo de contexto y estado por usuario
-- **Smart Replies**: Respuestas inteligentes basadas en intents
-- **Framework**: Gin para HTTP server
-- **Logging**: Zap logger estructurado
-- **Métricas**: Prometheus integrado
-- **Documentación**: Swagger/OpenAPI completa
-- **Testing**: Tests unitarios y de integración
-- **Docker**: Multi-stage builds optimizados
+El `it-bot-service` actúa como el **cerebro orquestador** que:
+
+- 🔀 **Gestiona flujos** de automatización visual tipo n8n
+- 🤖 **Instancia y coordina MCPs** según flujo, canal o usuario  
+- 🧠 **Mantiene contexto** y memoria de conversaciones
+- 🔗 **Conecta servicios** internos y externos
+- 📨 **Procesa mensajes** multicanal con respuestas inteligentes
+
+### **Flujo de Orquestación:**
+```
+Mensaje → Flujo → Agente MCP → Contexto → Respuesta → Integración
+```
+
+El servicio **instancia MCPs** cuando el flujo lo requiere, les **pasa contexto y objetivos**, recibe la **salida del agente** y actúa en consecuencia (responde, llama a otro microservicio, etc.), llevando **registro completo** de conversaciones, pasos y decisiones.
+
+## 🚀 Características Implementadas
+
+### ✅ **Core Funcional (Implementado)**
+- **🔀 Gestión de Flujos**: CRUD completo de flujos tipo n8n (crear, leer, actualizar, eliminar)
+- **🧩 Pasos Modulares**: 5 tipos de pasos (message, decision, input, api_call, ai)
+- **📨 Procesamiento Multicanal**: Web, WhatsApp, Telegram, Slack
+- **🧠 Context Manager**: Memoria corta con sesiones y variables de flujo
+- **🤖 Smart Replies**: Respuestas inteligentes basadas en IA e intents
+- **⚡ Ejecución de Flujos**: Motor de ejecución condicional
+- **🔗 API REST Completa**: Todos los endpoints para integración
+
+### ⚠️ **En Desarrollo (Parcial)**
+- **🎯 Orquestación MCP**: Estructura básica, falta instanciación de agentes
+- **🔌 Integraciones**: Tipo api_call implementado, falta ejecución real
+- **📊 Eventos**: Estructura en metadata, falta procesamiento completo
+- **🎨 UI Visual**: API lista, interfaz visual marcada para futuro
+
+### ❌ **Pendiente (Crítico)**
+- **🤖 Sistema de Agentes MCP**: Instanciación y coordinación de MCPs
+- **🧠 Memoria Persistente**: Almacenamiento a largo plazo
+- **🔧 Adaptadores/Plugins**: Sistema extensible de conectores
+- **📡 gRPC**: Soporte para llamadas gRPC
+
+## 📊 Estado de Funcionalidades Requeridas
+
+| Funcionalidad | Estado | Completitud |
+|---------------|--------|-------------|
+| 🔀 Gestión de flujos tipo n8n | ✅ **Implementado** | 85% |
+| 🤖 Orquestación de agentes MCP | ❌ **Pendiente** | 10% |
+| 📥📤 Entradas y salidas | ⚠️ **Parcial** | 70% |
+| 🧠 Context Manager | ⚠️ **Parcial** | 60% |
+| 🔧 Interfaz modular | ⚠️ **Parcial** | 65% |
+| 🔗 Interoperabilidad | ❌ **Pendiente** | 20% |
+| 🎨 UI para flujos | ❌ **Futuro** | 0% |
+
+**Estado General**: 🟡 **Funcional Básico** (50% completitud) - Listo para casos de uso simples, requiere desarrollo MCP para funcionalidad completa.
 
 ## 📁 Estructura del Proyecto
 
 ```
-├── cmd/                    # Comandos de la aplicación
-├── internal/              # Código interno de la aplicación
-│   ├── config/           # Configuración
-│   ├── handlers/         # Handlers HTTP
-│   ├── middleware/       # Middleware personalizado
-│   └── services/         # Lógica de negocio
-├── pkg/                  # Paquetes reutilizables
-│   ├── logger/          # Logger personalizado
-│   └── vault/           # Cliente de Vault
-├── scripts/             # Scripts de inicialización
-├── monitoring/          # Configuración de monitoreo
-├── .env.*              # Archivos de configuración por entorno
-├── docker-compose.yml  # Desarrollo local
-├── Dockerfile         # Imagen de producción
-└── Makefile          # Comandos de automatización
+├── internal/                    # Código interno del bot-service
+│   ├── ai/                     # Cliente de IA (OpenAI, Vertex AI)
+│   ├── config/                 # Configuración del servicio
+│   ├── domain/                 # Entidades y repositorios
+│   │   ├── entities.go         # Bot, BotFlow, BotStep, SmartReply
+│   │   └── repositories.go     # Interfaces de persistencia
+│   ├── handlers/               # Handlers HTTP del bot
+│   │   ├── handlers.go         # Health checks
+│   │   └── bot_handlers.go     # CRUD de bots, flujos, pasos
+│   ├── middleware/             # Middleware personalizado
+│   ├── repositories/           # Implementaciones mock
+│   ├── services/               # Lógica de negocio
+│   │   ├── bot.go             # Orquestación principal
+│   │   ├── bot_flow.go        # Gestión de flujos
+│   │   ├── bot_step.go        # Gestión de pasos
+│   │   ├── smart_reply.go     # IA y respuestas inteligentes
+│   │   └── conversation.go    # Manejo de sesiones
+│   └── testing/               # Utilidades de testing
+├── pkg/                       # Paquetes reutilizables
+│   ├── logger/               # Logger estructurado
+│   ├── vault/                # Cliente de Vault
+│   ├── events/               # Sistema de eventos
+│   ├── featureflags/         # Feature flags
+│   └── tracing/              # Tracing distribuido
+├── postman/                  # Colecciones de Postman
+│   ├── Bot-Service-API.postman_collection.json
+│   ├── Bot-Service-Local.postman_environment.json
+│   └── Bot-Service-Cloud.postman_environment.json
+├── scripts/                  # Scripts de utilidad
+│   ├── run-local.sh         # Ejecutar localmente
+│   ├── test-api.sh          # Pruebas automatizadas
+│   ├── sample_data.go       # Datos de ejemplo
+│   ├── deploy.sh            # Script de deployment
+│   └── setup-gcp.sh         # Configuración de GCP
+├── deploy/                   # Configuraciones de deployment
+│   ├── cloudrun-staging.yaml
+│   └── cloudrun-production.yaml
+├── monitoring/               # Configuración de monitoreo
+├── tests/                    # Tests de integración y e2e
+├── cloudbuild.yaml          # Configuración de Cloud Build
+├── Dockerfile               # Imagen optimizada para Cloud Run
+├── FUNCTIONALITY_ANALYSIS.md # Análisis detallado de funcionalidades
+├── TESTING.md               # Guía completa de pruebas
+└── DEPLOYMENT.md            # Guía de deployment en GCP
 ```
 
 ## 🛠️ Configuración Inicial
@@ -42,44 +110,61 @@ Microservicio especializado en la orquestación conversacional del sistema, gest
 ### 1. Clonar y configurar el proyecto
 
 ```bash
-# Clonar el template
+# Clonar el repositorio
 git clone <repository-url>
-cd microservice-template
-
-# Copiar configuración de ejemplo
-cp .env.example .env.local
+cd it-bot-service
 
 # Instalar dependencias
+go mod download
 make deps
 ```
 
 ### 2. Configurar variables de entorno
 
-Edita `.env.local` con tus configuraciones:
+El archivo `.env.local` ya está configurado para desarrollo:
 
 ```bash
-# Configuración básica
+# Configuración del Bot Service
 ENVIRONMENT=development
 PORT=8080
 LOG_LEVEL=debug
 
-# Base de datos
+# APIs de IA (usar claves reales para funcionalidad completa)
+OPENAI_API_KEY=sk-test-key-for-local-development
+VERTEX_AI_PROJECT=innovatech-agc
+VERTEX_AI_LOCATION=us-east1
+
+# Base de datos (opcional para desarrollo)
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_NAME=microservice_dev
+DB_USER=bot_service_user
+DB_PASSWORD=local_password
+DB_NAME=bot_service_dev
 
-# Vault (comentado para desarrollo inicial)
-# VAULT_ADDR=http://localhost:8200
-# VAULT_TOKEN=dev-token
+# Redis para sesiones (opcional)
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# URLs de servicios relacionados
+MESSAGING_SERVICE_URL=http://localhost:8081
+USER_SERVICE_URL=http://localhost:8082
 ```
 
 ## 🚀 Desarrollo Local
 
-### Opción 1: Ejecutar directamente
+### Opción 1: Script Automatizado (Recomendado)
 
 ```bash
+# Ejecutar con datos de ejemplo incluidos
+./scripts/run-local.sh
+```
+
+### Opción 2: Ejecutar directamente
+
+```bash
+# Crear datos de ejemplo
+go run scripts/sample_data.go
+
 # Compilar y ejecutar
 make build
 make run
@@ -88,21 +173,21 @@ make run
 go run .
 ```
 
-### Opción 2: Con Docker Compose (Recomendado)
+### Opción 3: Con Docker Compose
 
 ```bash
-# Levantar todos los servicios (app, postgres, vault, redis, prometheus)
+# Levantar entorno completo (opcional)
 make docker-dev
 
 # Detener servicios
 make docker-down
 ```
 
-Servicios disponibles:
-- **API**: http://localhost:8080
-- **Swagger**: http://localhost:8080/swagger/index.html
-- **Prometheus**: http://localhost:9090
-- **Vault**: http://localhost:8200
+**Servicios disponibles:**
+- **🤖 Bot Service API**: http://localhost:8080
+- **📚 Swagger Documentation**: http://localhost:8080/swagger/index.html
+- **🏥 Health Check**: http://localhost:8080/api/v1/health
+- **📊 Metrics**: http://localhost:8080/metrics
 
 ## 🧪 Testing
 
@@ -196,25 +281,38 @@ make docker-test
 
 ## ☁️ Despliegue en GCP Cloud Run
 
-### Preparación
-1. Configurar gcloud CLI
-2. Habilitar Cloud Run API
-3. Configurar Container Registry
+### Setup Inicial (Solo una vez)
+```bash
+# Configurar recursos de GCP automáticamente
+./scripts/setup-gcp.sh innovatech-agc us-east1
+```
 
 ### Deploy a Staging
 ```bash
-# Build y push de imagen
-docker build -t gcr.io/PROJECT_ID/microservice-template:latest .
-docker push gcr.io/PROJECT_ID/microservice-template:latest
-
-# Deploy
+# Usando script automatizado (recomendado)
 make deploy-staging
+
+# O directamente con Cloud Build
+gcloud builds submit --config cloudbuild.yaml \
+    --substitutions _ENVIRONMENT=staging,_REGION=us-east1 \
+    --project=innovatech-agc
 ```
 
 ### Deploy a Producción
 ```bash
+# Usando script automatizado
 make deploy-prod
+
+# O directamente con Cloud Build
+gcloud builds submit --config cloudbuild.yaml \
+    --substitutions _ENVIRONMENT=production,_REGION=us-east1 \
+    --project=innovatech-agc
 ```
+
+**Servicios desplegados:**
+- **Staging**: `it-bot-service-staging` en Cloud Run
+- **Production**: `it-bot-service-production` en Cloud Run
+- **Imágenes**: Almacenadas en `gcr.io/innovatech-agc/it-bot-service`
 
 ## 🔐 Manejo de Secretos
 
@@ -238,32 +336,58 @@ Para desarrollo local, usar archivos `.env.*`
 ### Prometheus
 Configuración en `monitoring/prometheus.yml`
 
-## 🔄 Personalización del Template
+## 🧪 Pruebas Completas
 
-### 1. Cambiar nombre del módulo
-Actualizar en `go.mod`:
-```go
-module github.com/company/tu-microservicio
+### Pruebas Automatizadas con curl
+```bash
+# Probar API local
+./scripts/test-api.sh local
+
+# Probar API en la nube
+./scripts/test-api.sh cloud https://tu-servicio.run.app
 ```
 
-### 2. Agregar nuevos endpoints
-```go
-// En internal/handlers/handlers.go
-api.GET("/tu-endpoint", h.TuHandler)
-```
+### Pruebas con Postman
+1. **Importar colección**: `postman/Bot-Service-API.postman_collection.json`
+2. **Importar environment**: 
+   - Local: `postman/Bot-Service-Local.postman_environment.json`
+   - Cloud: `postman/Bot-Service-Cloud.postman_environment.json`
+3. **Ejecutar pruebas** de todos los endpoints
 
-### 3. Agregar servicios externos
-```go
-// En internal/services/
-type ExternalService interface {
-    CallAPI() error
-}
-```
+### Escenarios de Prueba Incluidos
+- ✅ **Health Checks** - Verificar estado del servicio
+- ✅ **Bot Management** - CRUD completo de bots
+- ✅ **Flow Management** - Gestión de flujos conversacionales
+- ✅ **Step Management** - Pasos de diferentes tipos
+- ✅ **Smart Replies** - Respuestas inteligentes con IA
+- ✅ **Message Processing** - Procesamiento multicanal
+- ✅ **Load Testing** - Pruebas de carga
 
-### 4. Configurar base de datos
-Descomentar y configurar en:
-- `internal/config/config.go`
-- Scripts de migración en `scripts/`
+## 🎯 Próximos Desarrollos (Roadmap)
+
+### 🔥 **Fase 1: Integración MCP (Crítico)**
+- [ ] Implementar `MCPOrchestrator` para instanciar agentes
+- [ ] Sistema de coordinación de múltiples MCPs
+- [ ] Paso de contexto entre agentes
+- [ ] Manejo de estado de agentes
+
+### ⚡ **Fase 2: Integraciones Robustas**
+- [ ] Llamadas HTTP/gRPC reales en pasos `api_call`
+- [ ] Sistema de adaptadores extensible
+- [ ] Conectores para servicios externos
+- [ ] Manejo avanzado de errores y reintentos
+
+### 📚 **Fase 3: Memoria Persistente**
+- [ ] Base de datos para memoria a largo plazo
+- [ ] Indexación y búsqueda de contexto histórico
+- [ ] Analytics de conversaciones
+- [ ] Métricas de rendimiento de agentes
+
+### 🎨 **Fase 4: UI Visual (Futuro)**
+- [ ] Panel web para gestión de flujos
+- [ ] Editor drag-and-drop tipo n8n
+- [ ] Monitoreo en tiempo real
+- [ ] Dashboard de analytics
 
 ## 📝 Comandos Útiles
 

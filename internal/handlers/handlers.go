@@ -17,7 +17,7 @@ type Handler struct {
 	logger        logger.Logger
 }
 
-func SetupRoutes(router *gin.Engine, healthService services.HealthService, botHandler *BotHandler, logger logger.Logger) {
+func SetupRoutes(router *gin.Engine, healthService services.HealthService, botHandler *BotHandler, mcpHandler *MCPHandler, taskHandler *TaskHandler, testHandler *TestHandlers, logger logger.Logger) {
 	h := &Handler{
 		healthService: healthService,
 		logger:        logger,
@@ -36,6 +36,21 @@ func SetupRoutes(router *gin.Engine, healthService services.HealthService, botHa
 		// Bot routes
 		if botHandler != nil {
 			SetupBotRoutes(api, botHandler)
+		}
+		
+		// MCP routes
+		if mcpHandler != nil {
+			SetupMCPRoutes(api, mcpHandler)
+		}
+		
+		// Task routes
+		if taskHandler != nil {
+			SetupTaskRoutes(api, taskHandler)
+		}
+		
+		// Test routes
+		if testHandler != nil {
+			testHandler.RegisterRoutes(api)
 		}
 		
 		// Example routes (comentadas para testing)

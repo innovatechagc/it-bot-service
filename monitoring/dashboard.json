@@ -1,8 +1,8 @@
 {
   "dashboard": {
     "id": null,
-    "title": "Microservice Template Dashboard",
-    "tags": ["microservice", "template"],
+    "title": "IT Bot Service Dashboard",
+    "tags": ["bot-service", "mcp", "ai"],
     "timezone": "browser",
     "panels": [
       {
@@ -111,7 +111,7 @@
         "type": "singlestat",
         "targets": [
           {
-            "expr": "sum(up{job=\"microservice-template\"})"
+            "expr": "sum(up{job=\"it-bot-service\"})"
           }
         ],
         "gridPos": {

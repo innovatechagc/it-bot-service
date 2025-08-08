@@ -12,7 +12,7 @@ func TestHealthService_CheckHealth(t *testing.T) {
 	result := service.CheckHealth()
 	
 	assert.Equal(t, "healthy", result["status"])
-	assert.Equal(t, "microservice-template", result["service"])
+	assert.Equal(t, "it-bot-service", result["service"])
 	assert.Equal(t, "1.0.0", result["version"])
 	assert.NotNil(t, result["timestamp"])
 	assert.NotNil(t, result["uptime"])

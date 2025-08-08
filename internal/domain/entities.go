@@ -167,3 +167,352 @@ type HealthStatus struct {
 	Version   string                 `json:"version"`
 	Checks    map[string]interface{} `json:"checks,omitempty"`
 }
+
+// MCP (Model Context Protocol) Entities
+
+// MCPAgent representa un agente MCP
+type MCPAgent struct {
+	ID           string                 `json:"id"`
+	Type         string                 `json:"type"`
+	Name         string                 `json:"name"`
+	Version      string                 `json:"version"`
+	Config       map[string]interface{} `json:"config"`
+	Capabilities []string               `json:"capabilities"`
+	Status       MCPAgentStatus         `json:"status"`
+	Timeout      int64                  `json:"timeout"` // en milliseconds
+	CreatedAt    time.Time              `json:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at"`
+}
+
+// MCPTask representa una tarea para ejecutar en un agente MCP
+type MCPTask struct {
+	ID          string                 `json:"id"`
+	Type        string                 `json:"type"`
+	Description string                 `json:"description"`
+	Input       map[string]interface{} `json:"input"`
+	Priority    int                    `json:"priority"`
+	Timeout     int64                  `json:"timeout"` // en milliseconds
+	Context     map[string]interface{} `json:"context,omitempty"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+}
+
+// MCPTaskResult representa el resultado de la ejecución de una tarea MCP
+type MCPTaskResult struct {
+	TaskID        string                 `json:"task_id"`
+	AgentID       string                 `json:"agent_id"`
+	Success       bool                   `json:"success"`
+	Output        map[string]interface{} `json:"output"`
+	Error         string                 `json:"error,omitempty"`
+	ExecutionTime int64                  `json:"execution_time"` // en milliseconds
+	Metadata      map[string]interface{} `json:"metadata,omitempty"`
+	CompletedAt   time.Time              `json:"completed_at"`
+}
+
+// MCPAgentMetrics representa métricas de rendimiento de un agente MCP
+type MCPAgentMetrics struct {
+	AgentID             string    `json:"agent_id"`
+	TasksExecuted       int64     `json:"tasks_executed"`
+	TasksSuccessful     int64     `json:"tasks_successful"`
+	TasksFailed         int64     `json:"tasks_failed"`
+	ErrorCount          int64     `json:"error_count"`
+	AverageResponseTime int64     `json:"average_response_time"` // en milliseconds
+	LastExecution       time.Time `json:"last_execution"`
+	LastError           time.Time `json:"last_error"`
+	SuccessRate         float64   `json:"success_rate"`
+}
+
+// MCPSystemMetrics representa métricas del sistema MCP
+type MCPSystemMetrics struct {
+	TotalAgents         int       `json:"total_agents"`
+	ActiveAgents        int       `json:"active_agents"`
+	TotalTasks          int64     `json:"total_tasks"`
+	CompletedTasks      int64     `json:"completed_tasks"`
+	FailedTasks         int64     `json:"failed_tasks"`
+	AverageResponseTime int64     `json:"average_response_time"` // en milliseconds
+	SystemUptime        int64     `json:"system_uptime"`         // en seconds
+	LastUpdated         time.Time `json:"last_updated"`
+}
+
+// MCPAgentStatus representa los posibles estados de un agente MCP
+type MCPAgentStatus string
+
+const (
+	MCPAgentStatusIdle       MCPAgentStatus = "idle"
+	MCPAgentStatusBusy       MCPAgentStatus = "busy"
+	MCPAgentStatusError      MCPAgentStatus = "error"
+	MCPAgentStatusTerminated MCPAgentStatus = "terminated"
+)
+
+// MCPTaskType representa los tipos de tareas MCP soportadas
+type MCPTaskType string
+
+const (
+	MCPTaskTypeTextGeneration MCPTaskType = "text_generation"
+	MCPTaskTypeConversation   MCPTaskType = "conversation"
+	MCPTaskTypeAnalysis       MCPTaskType = "analysis"
+	MCPTaskTypeSummarization  MCPTaskType = "summarization"
+	MCPTaskTypeHTTPRequest    MCPTaskType = "http_request"
+	MCPTaskTypeAPICall        MCPTaskType = "api_call"
+	MCPTaskTypeWebhook        MCPTaskType = "webhook"
+	MCPTaskTypeIntegration    MCPTaskType = "integration"
+	MCPTaskTypeWorkflow       MCPTaskType = "workflow"
+	MCPTaskTypeSequence       MCPTaskType = "sequence"
+	MCPTaskTypeOrchestration  MCPTaskType = "orchestration"
+	MCPTaskTypeAutomation     MCPTaskType = "automation"
+)
+
+// MCPAgentType representa los tipos de agentes MCP soportados
+type MCPAgentType string
+
+const (
+	MCPAgentTypeAI       MCPAgentType = "ai"
+	MCPAgentTypeHTTP     MCPAgentType = "http"
+	MCPAgentTypeWorkflow MCPAgentType = "workflow"
+	MCPAgentTypeMock     MCPAgentType = "mock"
+)
+
+// Async Task Entities
+
+// AsyncTask representa una tarea asíncrona
+type AsyncTask struct {
+	ID            string                 `json:"id"`
+	Type          string                 `json:"type"`
+	Description   string                 `json:"description"`
+	UserID        string                 `json:"user_id"`
+	BotID         string                 `json:"bot_id"`
+	Input         map[string]interface{} `json:"input"`
+	Context       map[string]interface{} `json:"context,omitempty"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty"`
+	Priority      int                    `json:"priority"`
+	Timeout       int64                  `json:"timeout"` // en milliseconds
+	Status        TaskStatus             `json:"status"`
+	Result        map[string]interface{} `json:"result,omitempty"`
+	Error         string                 `json:"error,omitempty"`
+	ExecutionTime int64                  `json:"execution_time,omitempty"` // en milliseconds
+	CreatedAt     time.Time              `json:"created_at"`
+	UpdatedAt     time.Time              `json:"updated_at"`
+	StartedAt     time.Time              `json:"started_at,omitempty"`
+	CompletedAt   time.Time              `json:"completed_at,omitempty"`
+}
+
+// TaskStatus representa los posibles estados de una tarea asíncrona
+type TaskStatus string
+
+const (
+	TaskStatusPending   TaskStatus = "pending"
+	TaskStatusRunning   TaskStatus = "running"
+	TaskStatusCompleted TaskStatus = "completed"
+	TaskStatusFailed    TaskStatus = "failed"
+	TaskStatusCancelled TaskStatus = "cancelled"
+)
+
+// Memory Management Entities
+
+// Memory representa una memoria persistente a largo plazo
+type Memory struct {
+	ID         string                 `json:"id"`
+	UserID     string                 `json:"user_id"`
+	BotID      string                 `json:"bot_id"`
+	Key        string                 `json:"key"`
+	Type       MemoryType             `json:"type"`
+	Content    map[string]interface{} `json:"content"`
+	Tags       []string               `json:"tags"`
+	Importance int                    `json:"importance"` // 1-10, donde 10 es más importante
+	CreatedAt  time.Time              `json:"created_at"`
+	UpdatedAt  time.Time              `json:"updated_at"`
+	ExpiresAt  time.Time              `json:"expires_at"`
+}
+
+// ContextSummary representa un resumen del contexto de conversación
+type ContextSummary struct {
+	UserID    string                 `json:"user_id"`
+	BotID     string                 `json:"bot_id"`
+	Summary   string                 `json:"summary"`
+	KeyPoints []string               `json:"key_points"`
+	Entities  map[string]interface{} `json:"entities"`
+	CreatedAt time.Time              `json:"created_at"`
+	UpdatedAt time.Time              `json:"updated_at"`
+}
+
+// MemoryStats representa estadísticas de memoria para un usuario
+type MemoryStats struct {
+	UserID               string            `json:"user_id"`
+	BotID                string            `json:"bot_id"`
+	TotalMemories        int               `json:"total_memories"`
+	MemoriesByType       map[string]int    `json:"memories_by_type"`
+	MemoriesByImportance map[int]int       `json:"memories_by_importance"`
+	OldestMemory         time.Time         `json:"oldest_memory"`
+	NewestMemory         time.Time         `json:"newest_memory"`
+	LastUpdated          time.Time         `json:"last_updated"`
+}
+
+// MemoryType representa los tipos de memoria soportados
+type MemoryType string
+
+const (
+	MemoryTypePersonal     MemoryType = "personal"     // Información personal del usuario
+	MemoryTypePreference   MemoryType = "preference"   // Preferencias del usuario
+	MemoryTypeConversation MemoryType = "conversation" // Contexto de conversaciones
+	MemoryTypeFact         MemoryType = "fact"         // Hechos importantes
+	MemoryTypeGoal         MemoryType = "goal"         // Objetivos del usuario
+	MemoryTypeHistory      MemoryType = "history"      // Historial de interacciones
+	MemoryTypeCustom       MemoryType = "custom"       // Memoria personalizada
+)
+
+// Conditional representa una condición evaluable
+type Conditional struct {
+	ID          string                 `json:"id"`
+	BotID       string                 `json:"bot_id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Expression  string                 `json:"expression"`
+	Type        ConditionalType        `json:"type"`
+	Priority    int                    `json:"priority"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+}
+
+// ConditionalType representa los tipos de condiciones
+type ConditionalType string
+
+const (
+	ConditionalTypeSimple    ConditionalType = "simple"    // Condición básica
+	ConditionalTypeComplex   ConditionalType = "complex"   // Condición compleja
+	ConditionalTypeRegex     ConditionalType = "regex"     // Expresión regular
+	ConditionalTypeAI        ConditionalType = "ai"        // Evaluación con IA
+	ConditionalTypeExternal  ConditionalType = "external"  // Condición externa
+)
+
+// Trigger representa un disparador de eventos
+type Trigger struct {
+	ID          string                 `json:"id"`
+	BotID       string                 `json:"bot_id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Event       TriggerEvent           `json:"event"`
+	Condition   string                 `json:"condition"` // ID de la condición
+	Action      TriggerAction          `json:"action"`
+	Priority    int                    `json:"priority"`
+	Enabled     bool                   `json:"enabled"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+}
+
+// TriggerEvent representa los tipos de eventos que pueden disparar triggers
+type TriggerEvent string
+
+const (
+	TriggerEventMessageReceived TriggerEvent = "message_received"
+	TriggerEventUserJoined      TriggerEvent = "user_joined"
+	TriggerEventUserLeft        TriggerEvent = "user_left"
+	TriggerEventTimeout         TriggerEvent = "timeout"
+	TriggerEventError           TriggerEvent = "error"
+	TriggerEventCustom          TriggerEvent = "custom"
+)
+
+// TriggerAction representa las acciones que puede ejecutar un trigger
+type TriggerAction struct {
+	Type    string                 `json:"type"`
+	Config  map[string]interface{} `json:"config"`
+	Timeout int64                  `json:"timeout"` // en milliseconds
+}
+
+// TestCase representa un caso de prueba
+type TestCase struct {
+	ID          string                 `json:"id"`
+	BotID       string                 `json:"bot_id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	Input       TestInput              `json:"input"`
+	Expected    TestExpected           `json:"expected"`
+	Conditions  []string               `json:"conditions"` // IDs de condiciones
+	Triggers    []string               `json:"triggers"`   // IDs de triggers
+	Status      TestStatus             `json:"status"`
+	Result      *TestResult            `json:"result,omitempty"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+}
+
+// TestInput representa la entrada de un caso de prueba
+type TestInput struct {
+	Message   string                 `json:"message"`
+	UserID    string                 `json:"user_id"`
+	Context   map[string]interface{} `json:"context,omitempty"`
+	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+}
+
+// TestExpected representa el resultado esperado de un caso de prueba
+type TestExpected struct {
+	Response    string                 `json:"response"`
+	NextStep    string                 `json:"next_step,omitempty"`
+	Conditions  []string               `json:"conditions,omitempty"`
+	Triggers    []string               `json:"triggers,omitempty"`
+	Context     map[string]interface{} `json:"context,omitempty"`
+	Timeout     int64                  `json:"timeout"` // en milliseconds
+}
+
+// TestResult representa el resultado de ejecutar un caso de prueba
+type TestResult struct {
+	Success       bool                   `json:"success"`
+	ActualResponse string                `json:"actual_response"`
+	ActualNextStep string                `json:"actual_next_step,omitempty"`
+	ExecutedConditions []string          `json:"executed_conditions,omitempty"`
+	ExecutedTriggers   []string          `json:"executed_triggers,omitempty"`
+	ActualContext      map[string]interface{} `json:"actual_context,omitempty"`
+	ExecutionTime      int64             `json:"execution_time"` // en milliseconds
+	Error             string             `json:"error,omitempty"`
+	ExecutedAt        time.Time          `json:"executed_at"`
+}
+
+// TestStatus representa el estado de un caso de prueba
+type TestStatus string
+
+const (
+	TestStatusPending   TestStatus = "pending"
+	TestStatusRunning   TestStatus = "running"
+	TestStatusPassed    TestStatus = "passed"
+	TestStatusFailed    TestStatus = "failed"
+	TestStatusSkipped   TestStatus = "skipped"
+)
+
+// TestSuite representa una suite de pruebas
+type TestSuite struct {
+	ID          string                 `json:"id"`
+	BotID       string                 `json:"bot_id"`
+	Name        string                 `json:"name"`
+	Description string                 `json:"description"`
+	TestCases   []string               `json:"test_cases"` // IDs de casos de prueba
+	Status      TestSuiteStatus        `json:"status"`
+	Result      *TestSuiteResult       `json:"result,omitempty"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt   time.Time              `json:"created_at"`
+	UpdatedAt   time.Time              `json:"updated_at"`
+}
+
+// TestSuiteStatus representa el estado de una suite de pruebas
+type TestSuiteStatus string
+
+const (
+	TestSuiteStatusPending TestSuiteStatus = "pending"
+	TestSuiteStatusRunning TestSuiteStatus = "running"
+	TestSuiteStatusPassed  TestSuiteStatus = "passed"
+	TestSuiteStatusFailed  TestSuiteStatus = "failed"
+	TestSuiteStatusPartial TestSuiteStatus = "partial"
+)
+
+// TestSuiteResult representa el resultado de una suite de pruebas
+type TestSuiteResult struct {
+	TotalTests     int                    `json:"total_tests"`
+	PassedTests    int                    `json:"passed_tests"`
+	FailedTests    int                    `json:"failed_tests"`
+	SkippedTests   int                    `json:"skipped_tests"`
+	SuccessRate    float64                `json:"success_rate"`
+	ExecutionTime  int64                  `json:"execution_time"` // en milliseconds
+	StartedAt      time.Time              `json:"started_at"`
+	CompletedAt    time.Time              `json:"completed_at"`
+	TestResults    map[string]*TestResult `json:"test_results,omitempty"`
+}

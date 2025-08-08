@@ -43,7 +43,7 @@ func Load() *Config {
 
 	return &Config{
 		Environment: getEnv("ENVIRONMENT", "development"),
-		Port:        getEnv("PORT", "8080"),
+		Port:        getEnv("IT_BOT_SERVICE_PORT", "8084"),
 		LogLevel:    getEnv("LOG_LEVEL", "info"),
 		VaultConfig: VaultConfig{
 			Address: getEnv("VAULT_ADDR", "http://localhost:8200"),
@@ -55,11 +55,11 @@ func Load() *Config {
 			Port:     getEnv("DB_PORT", "5432"),
 			User:     getEnv("DB_USER", "postgres"),
 			Password: getEnv("DB_PASSWORD", ""),
-			Name:     getEnv("DB_NAME", "microservice"),
+			Name:     getEnv("DB_NAME", "it_bot_service"),
 			SSLMode:  getEnv("DB_SSL_MODE", "disable"),
 		},
 		ExternalAPI: ExternalAPIConfig{
-			BaseURL: getEnv("EXTERNAL_API_URL", "https://api.example.com"),
+			BaseURL: getEnv("IT_INTEGRATION_SERVICE_URL", "http://localhost:8080"),
 			APIKey:  getEnv("EXTERNAL_API_KEY", ""),
 			Timeout: getEnvAsInt("EXTERNAL_API_TIMEOUT", 30),
 		},

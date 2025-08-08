@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/company/bot-service/internal/domain"
+	"github.com/company/bot-service/internal/mcp"
 	"github.com/company/bot-service/pkg/logger"
 )
 
@@ -68,6 +69,10 @@ type botService struct {
 	smartReplyRepo  domain.SmartReplyRepository
 	conversationSvc ConversationService
 	smartReplySvc   SmartReplyService
+	mcpOrchestrator interface {
+		mcp.MCPOrchestrator
+		mcp.MCPDomainOrchestrator
+	}
 	logger          logger.Logger
 }
 
@@ -79,6 +84,10 @@ func NewBotService(
 	smartReplyRepo domain.SmartReplyRepository,
 	conversationSvc ConversationService,
 	smartReplySvc SmartReplyService,
+	mcpOrchestrator interface {
+		mcp.MCPOrchestrator
+		mcp.MCPDomainOrchestrator
+	},
 	logger logger.Logger,
 ) BotService {
 	return &botService{
@@ -89,6 +98,7 @@ func NewBotService(
 		smartReplyRepo:  smartReplyRepo,
 		conversationSvc: conversationSvc,
 		smartReplySvc:   smartReplySvc,
+		mcpOrchestrator: mcpOrchestrator,
 		logger:          logger,
 	}
 }
@@ -314,10 +324,101 @@ func (s *botService) processInputStep(ctx context.Context, step *domain.BotStep,
 }
 
 func (s *botService) processAPICallStep(ctx context.Context, step *domain.BotStep, message *domain.IncomingMessage, session *domain.ConversationSession) (*domain.BotResponse, *string, error) {
-	// Implementar llamada a API externa
+	// Parsear configuración del paso API
+	var content struct {
+		AgentType string                 `json:"agent_type"`
+		Config    map[string]interface{} `json:"config"`
+		Task      map[string]interface{} `json:"task"`
+	}
+	
+	if err := json.Unmarshal(step.Content, &content); err != nil {
+		return nil, nil, fmt.Errorf("failed to parse API step content: %w", err)
+	}
+
+	// Configurar agente MCP si es necesario
+	agentConfig := mcp.MCPConfig{
+		Type:         content.AgentType,
+		Name:         fmt.Sprintf("api-agent-%s", step.ID),
+		Version:      "1.0",
+		Config:       content.Config,
+		Capabilities: []string{"http_request", "api_call"},
+		Timeout:      30 * time.Second,
+	}
+
+	// Instanciar agente MCP
+	agent, err := s.mcpOrchestrator.InstantiateMCP(ctx, agentConfig)
+	if err != nil {
+		s.logger.Error("Failed to instantiate MCP agent", "error", err)
+		return &domain.BotResponse{
+			Content: "Unable to process API request at this time",
+			Type:    domain.ResponseTypeText,
+		}, step.NextStepID, nil
+	}
+
+	// Pasar contexto al agente
+	agentContext := make(map[string]interface{})
+	for k, v := range session.Context {
+		agentContext[k] = v
+	}
+	agentContext["user_message"] = message.Content
+	agentContext["user_id"] = message.UserID
+	agentContext["bot_id"] = message.BotID
+
+	if err := s.mcpOrchestrator.PassContext(ctx, agent.GetID(), agentContext); err != nil {
+		s.logger.Error("Failed to pass context to agent", "error", err)
+	}
+
+	// Crear tarea para el agente
+	task := mcp.Task{
+		ID:          fmt.Sprintf("task-%s-%d", step.ID, time.Now().UnixNano()),
+		Type:        content.AgentType,
+		Description: fmt.Sprintf("API call for step %s", step.ID),
+		Input:       content.Task,
+		Priority:    5,
+		Metadata: map[string]interface{}{
+			"step_id":    step.ID,
+			"message_id": message.ID,
+		},
+	}
+
+	// Ejecutar tarea
+	result, err := s.mcpOrchestrator.ExecuteTask(ctx, task)
+	if err != nil {
+		s.logger.Error("MCP task execution failed", "error", err)
+		return &domain.BotResponse{
+			Content: "API request failed. Please try again later.",
+			Type:    domain.ResponseTypeText,
+		}, step.NextStepID, nil
+	}
+
+	// Procesar resultado
+	var responseContent string
+	if result.Success {
+		if output, exists := result.Output["response"]; exists {
+			responseContent = fmt.Sprintf("API call successful: %v", output)
+		} else {
+			responseContent = "API call completed successfully"
+		}
+		
+		// Guardar resultado en el contexto de la sesión
+		session.Context["api_result"] = result.Output
+	} else {
+		responseContent = fmt.Sprintf("API call failed: %s", result.Error)
+	}
+
+	// Terminar agente después del uso
+	if err := s.mcpOrchestrator.TerminateAgent(ctx, agent.GetID()); err != nil {
+		s.logger.Error("Failed to terminate agent", "agent_id", agent.GetID(), "error", err)
+	}
+
 	response := &domain.BotResponse{
-		Content: "API call processed (implementation pending)",
+		Content: responseContent,
 		Type:    domain.ResponseTypeText,
+		Metadata: map[string]interface{}{
+			"task_id":     result.TaskID,
+			"duration":    result.Duration.String(),
+			"agent_type":  content.AgentType,
+		},
 	}
 
 	return response, step.NextStepID, nil

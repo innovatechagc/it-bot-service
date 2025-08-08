@@ -1,0 +1,1469 @@
+{
+	"info": {
+		"_postman_id": "bot-service-api-collection",
+		"name": "Bot Service API - Complete Testing Suite",
+		"description": "Colección completa para probar todas las funcionalidades del Bot Service incluyendo MCP\n\n## Funcionalidades incluidas:\n- ✅ Health Checks\n- 🤖 MCP Agent Management\n- ⚡ MCP Task Execution\n- 📊 MCP Monitoring & Context\n- ⚡ Async Task Management\n- 🧠 Advanced MCP Features\n- 🤖 Bot Management\n- 🔀 Flow Management\n- 🧩 Step Management\n- 🧠 Smart Replies\n- 📨 Message Processing\n\n## Variables de entorno necesarias:\n- `base_url`: URL base del servicio\n- `ai_agent_id`: ID del agente AI\n- `http_agent_id`: ID del agente HTTP\n- `workflow_agent_id`: ID del agente Workflow\n- `adapter_agent_id`: ID del agente Adapter\n- `task_id`: ID de tarea MCP\n- `async_task_id`: ID de tarea asíncrona",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🏥 Health Checks",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"health"
+							]
+						},
+						"description": "Verifica el estado general del servicio"
+					},
+					"response": []
+				},
+				{
+					"name": "Readiness Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/ready",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"ready"
+							]
+						},
+						"description": "Verifica si el servicio está listo para recibir tráfico"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para verificar el estado del servicio"
+		},
+		{
+			"name": "🤖 Bot Management",
+			"item": [
+				{
+					"name": "Get All Bots",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots?owner_id=owner-001",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots"
+							],
+							"query": [
+								{
+									"key": "owner_id",
+									"value": "owner-001",
+									"description": "ID del propietario de los bots"
+								}
+							]
+						},
+						"description": "Obtiene la lista de todos los bots del usuario"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bot by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}"
+							]
+						},
+						"description": "Obtiene los detalles de un bot específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Bot",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.id) {",
+									"        pm.environment.set('bot_id', response.data.id);",
+									"        console.log('Bot ID saved:', response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Customer Support Bot\",\n    \"owner_id\": \"owner-001\",\n    \"channel\": \"web\",\n    \"status\": \"active\",\n    \"config\": {\n        \"welcome_message\": \"¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?\",\n        \"language\": \"es\",\n        \"timezone\": \"America/Mexico_City\",\n        \"max_session_duration\": 3600\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots"
+							]
+						},
+						"description": "Crea un nuevo bot conversacional"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Bot",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Advanced Customer Support Bot\",\n    \"status\": \"active\",\n    \"config\": {\n        \"welcome_message\": \"¡Hola! Soy tu asistente virtual mejorado. ¿Cómo puedo ayudarte?\",\n        \"language\": \"es\",\n        \"timezone\": \"America/Mexico_City\",\n        \"max_session_duration\": 7200,\n        \"ai_enabled\": true\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}"
+							]
+						},
+						"description": "Actualiza un bot existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Bot",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}"
+							]
+						},
+						"description": "Elimina un bot (usar con precaución)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestionar bots conversacionales"
+		},
+		{
+			"name": "🔀 Flow Management",
+			"item": [
+				{
+					"name": "Get Bot Flows",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/flows",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}",
+								"flows"
+							]
+						},
+						"description": "Obtiene todos los flujos de un bot específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Flow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.id) {",
+									"        pm.environment.set('flow_id', response.data.id);",
+									"        console.log('Flow ID saved:', response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Welcome Flow\",\n    \"trigger\": \"hello\",\n    \"entry_point\": \"step-001\",\n    \"is_default\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/flows",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}",
+								"flows"
+							]
+						},
+						"description": "Crea un nuevo flujo conversacional"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Flow Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"flows",
+								"{{flow_id}}"
+							]
+						},
+						"description": "Obtiene un flujo específico con todos sus pasos"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Flow",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Enhanced Welcome Flow\",\n    \"trigger\": \"hola\",\n    \"is_default\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"flows",
+								"{{flow_id}}"
+							]
+						},
+						"description": "Actualiza un flujo existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Flow",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"flows",
+								"{{flow_id}}"
+							]
+						},
+						"description": "Elimina un flujo y todos sus pasos"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestionar flujos de conversación"
+		},
+		{
+			"name": "🧩 Step Management",
+			"item": [
+				{
+					"name": "Create Message Step",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.id) {",
+									"        pm.environment.set('step_id', response.data.id);",
+									"        console.log('Step ID saved:', response.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"message\",\n    \"content\": {\n        \"text\": \"¡Hola! Bienvenido a nuestro sistema de soporte. ¿Cómo puedo ayudarte hoy?\",\n        \"type\": \"buttons\",\n        \"options\": [\n            {\n                \"id\": \"1\",\n                \"text\": \"Tengo una pregunta\",\n                \"value\": \"question\"\n            },\n            {\n                \"id\": \"2\",\n                \"text\": \"Necesito soporte técnico\",\n                \"value\": \"support\"\n            },\n            {\n                \"id\": \"3\",\n                \"text\": \"Hablar con un humano\",\n                \"value\": \"human\"\n            }\n        ]\n    },\n    \"next_step_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"flows",
+								"{{flow_id}}",
+								"steps"
+							]
+						},
+						"description": "Crea un paso de mensaje con opciones"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Decision Step",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"decision\",\n    \"content\": {\n        \"text\": \"Procesando tu selección...\"\n    },\n    \"conditions\": {\n        \"rules\": [\n            {\n                \"condition\": \"question\",\n                \"next_step\": \"step-question\"\n            },\n            {\n                \"condition\": \"support\",\n                \"next_step\": \"step-support\"\n            },\n            {\n                \"condition\": \"human\",\n                \"next_step\": \"step-human\"\n            }\n        ],\n        \"default\": \"step-default\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"flows",
+								"{{flow_id}}",
+								"steps"
+							]
+						},
+						"description": "Crea un paso de decisión con reglas condicionales"
+					},
+					"response": []
+				},
+				{
+					"name": "Create AI Step",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"ai\",\n    \"content\": {\n        \"text\": \"Perfecto, estaré encantado de responder tu pregunta. Por favor, compárteme los detalles.\",\n        \"ai_prompt\": \"Eres un asistente virtual especializado en atención al cliente. Responde de manera amigable y profesional.\"\n    },\n    \"next_step_id\": null\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/flows/{{flow_id}}/steps",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"flows",
+								"{{flow_id}}",
+								"steps"
+							]
+						},
+						"description": "Crea un paso que usa IA para generar respuestas"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Step",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": {\n        \"text\": \"¡Hola! Bienvenido a nuestro sistema de soporte mejorado. ¿En qué puedo asistirte?\",\n        \"type\": \"buttons\",\n        \"options\": [\n            {\n                \"id\": \"1\",\n                \"text\": \"Tengo una consulta\",\n                \"value\": \"question\"\n            },\n            {\n                \"id\": \"2\",\n                \"text\": \"Problema técnico\",\n                \"value\": \"support\"\n            },\n            {\n                \"id\": \"3\",\n                \"text\": \"Contactar agente\",\n                \"value\": \"human\"\n            },\n            {\n                \"id\": \"4\",\n                \"text\": \"Información general\",\n                \"value\": \"info\"\n            }\n        ]\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/steps/{{step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"steps",
+								"{{step_id}}"
+							]
+						},
+						"description": "Actualiza un paso existente"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Step",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/steps/{{step_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"steps",
+								"{{step_id}}"
+							]
+						},
+						"description": "Elimina un paso específico"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestionar pasos de flujos conversacionales"
+		},
+		{
+			"name": "🧠 Smart Replies & AI",
+			"item": [
+				{
+					"name": "Generate Smart Reply",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prompt\": \"El usuario pregunta sobre los horarios de atención al cliente\",\n    \"context\": {\n        \"user_type\": \"premium\",\n        \"previous_interactions\": 3,\n        \"language\": \"es\",\n        \"channel\": \"web\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/smart-reply",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}",
+								"smart-reply"
+							]
+						},
+						"description": "Genera una respuesta inteligente usando IA"
+					},
+					"response": []
+				},
+				{
+					"name": "Train Intents",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"intent\": \"greeting\",\n        \"response\": \"¡Hola! ¿Cómo puedo ayudarte hoy?\",\n        \"confidence\": 0.9\n    },\n    {\n        \"intent\": \"goodbye\",\n        \"response\": \"¡Gracias por contactarnos! Que tengas un excelente día.\",\n        \"confidence\": 0.9\n    },\n    {\n        \"intent\": \"help\",\n        \"response\": \"Estoy aquí para ayudarte. Puedes preguntarme sobre nuestros productos y servicios.\",\n        \"confidence\": 0.8\n    },\n    {\n        \"intent\": \"hours\",\n        \"response\": \"Nuestro horario de atención es de lunes a viernes de 9:00 AM a 6:00 PM.\",\n        \"confidence\": 0.85\n    },\n    {\n        \"intent\": \"pricing\",\n        \"response\": \"Te puedo ayudar con información sobre precios. ¿Qué producto o servicio te interesa?\",\n        \"confidence\": 0.8\n    }\n]"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/intents/train",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}",
+								"intents",
+								"train"
+							]
+						},
+						"description": "Entrena el bot con intents y respuestas predefinidas"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bot Intents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/bots/{{bot_id}}/intents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bots",
+								"{{bot_id}}",
+								"intents"
+							]
+						},
+						"description": "Obtiene todos los intents configurados para un bot"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para funcionalidades de IA y respuestas inteligentes"
+		},
+		{
+			"name": "📨 Message Processing",
+			"item": [
+				{
+					"name": "Process Incoming Message - Simple",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bot_id\": \"{{bot_id}}\",\n    \"user_id\": \"user-001\",\n    \"content\": \"Hola\",\n    \"channel\": \"web\",\n    \"metadata\": {\n        \"source\": \"postman-test\",\n        \"timestamp\": \"2024-01-15T10:30:00Z\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/incoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"incoming"
+							]
+						},
+						"description": "Procesa un mensaje simple de saludo"
+					},
+					"response": []
+				},
+				{
+					"name": "Process Incoming Message - Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bot_id\": \"{{bot_id}}\",\n    \"user_id\": \"user-001\",\n    \"content\": \"¿Cuáles son sus horarios de atención?\",\n    \"channel\": \"web\",\n    \"metadata\": {\n        \"source\": \"postman-test\",\n        \"user_agent\": \"PostmanRuntime/7.32.3\",\n        \"ip_address\": \"192.168.1.100\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/incoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"incoming"
+							]
+						},
+						"description": "Procesa un mensaje con una pregunta específica"
+					},
+					"response": []
+				},
+				{
+					"name": "Process Incoming Message - WhatsApp",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bot_id\": \"{{bot_id}}\",\n    \"user_id\": \"whatsapp-user-123\",\n    \"content\": \"Necesito ayuda con mi pedido\",\n    \"channel\": \"whatsapp\",\n    \"metadata\": {\n        \"source\": \"whatsapp-webhook\",\n        \"phone_number\": \"+52xxxxxxxxxx\",\n        \"message_type\": \"text\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/incoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"incoming"
+							]
+						},
+						"description": "Procesa un mensaje desde WhatsApp"
+					},
+					"response": []
+				},
+				{
+					"name": "Process Incoming Message - Complex",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bot_id\": \"{{bot_id}}\",\n    \"user_id\": \"user-premium-001\",\n    \"content\": \"Tengo un problema técnico con la integración de la API. El endpoint /api/v1/users está devolviendo un error 500.\",\n    \"channel\": \"web\",\n    \"metadata\": {\n        \"source\": \"support-portal\",\n        \"user_type\": \"premium\",\n        \"session_id\": \"sess_abc123\",\n        \"previous_messages\": 5,\n        \"priority\": \"high\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/incoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"incoming"
+							]
+						},
+						"description": "Procesa un mensaje complejo con contexto técnico"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para procesar mensajes entrantes desde diferentes canales"
+		},
+		{
+			"name": "🤖 MCP Agent Management",
+			"item": [
+				{
+					"name": "Get Supported Agent Types",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/agent-types",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"agent-types"
+							]
+						},
+						"description": "Obtiene los tipos de agentes MCP soportados"
+					},
+					"response": []
+				},
+				{
+					"name": "Create AI Agent",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.agent_id) {",
+									"        pm.environment.set('ai_agent_id', response.data.agent_id);",
+									"        console.log('AI Agent ID saved:', response.data.agent_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"ai\",\n    \"name\": \"Customer Support AI Agent\",\n    \"version\": \"1.0\",\n    \"config\": {\n        \"openai_api_key\": \"sk-test-key\",\n        \"model\": \"gpt-3.5-turbo\",\n        \"temperature\": 0.7\n    },\n    \"capabilities\": [\n        \"text_generation\",\n        \"conversation\",\n        \"analysis\",\n        \"summarization\"\n    ],\n    \"timeout\": 30000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"agents"
+							]
+						},
+						"description": "Crea un agente de IA para procesamiento de texto"
+					},
+					"response": []
+				},
+				{
+					"name": "Create HTTP Agent",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.agent_id) {",
+									"        pm.environment.set('http_agent_id', response.data.agent_id);",
+									"        console.log('HTTP Agent ID saved:', response.data.agent_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"http\",\n    \"name\": \"External API Agent\",\n    \"version\": \"1.0\",\n    \"config\": {\n        \"base_url\": \"https://jsonplaceholder.typicode.com\",\n        \"headers\": {\n            \"Authorization\": \"Bearer token123\",\n            \"X-Custom-Header\": \"custom-value\"\n        }\n    },\n    \"capabilities\": [\n        \"http_request\",\n        \"api_call\",\n        \"webhook\",\n        \"integration\"\n    ],\n    \"timeout\": 30000\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"agents"
+							]
+						},
+						"description": "Crea un agente HTTP para llamadas a APIs externas"
+					},
+					"response": []
+				},
+				{
+					"name": "List All Agents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"agents"
+							]
+						},
+						"description": "Lista todos los agentes MCP activos"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Agent Details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/agents/{{ai_agent_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"agents",
+								"{{ai_agent_id}}"
+							]
+						},
+						"description": "Obtiene detalles de un agente específico"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestionar agentes MCP"
+		},
+		{
+			"name": "⚡ MCP Task Execution",
+			"item": [
+				{
+					"name": "Execute AI Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"text_generation\",\n    \"description\": \"Generate a professional email response\",\n    \"input\": {\n        \"prompt\": \"Write a professional email response to a customer inquiry about product pricing\",\n        \"tone\": \"professional\",\n        \"length\": \"medium\"\n    },\n    \"priority\": 5,\n    \"metadata\": {\n        \"source\": \"postman-test\",\n        \"category\": \"customer-service\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"tasks"
+							]
+						},
+						"description": "Ejecuta una tarea de generación de texto usando IA"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute HTTP Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"http_request\",\n    \"description\": \"Fetch user data from external API\",\n    \"input\": {\n        \"method\": \"GET\",\n        \"endpoint\": \"/users/1\",\n        \"headers\": {\n            \"Accept\": \"application/json\"\n        },\n        \"params\": {\n            \"include\": \"profile\"\n        }\n    },\n    \"priority\": 3,\n    \"metadata\": {\n        \"source\": \"postman-test\",\n        \"category\": \"data-fetch\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"tasks"
+							]
+						},
+						"description": "Ejecuta una tarea HTTP para obtener datos externos"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para ejecutar tareas usando agentes MCP"
+		},
+		{
+			"name": "⚡ Async Task Management",
+			"item": [
+				{
+					"name": "Submit AI Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 202) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.task_id) {",
+									"        pm.environment.set('async_task_id', response.data.task_id);",
+									"        console.log('Async Task ID saved:', response.data.task_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"text_generation\",\n    \"description\": \"Generate marketing copy for product launch\",\n    \"user_id\": \"user-001\",\n    \"bot_id\": \"bot-001\",\n    \"input\": {\n        \"prompt\": \"Create compelling marketing copy for a new AI-powered chatbot service\",\n        \"tone\": \"professional\",\n        \"length\": \"medium\",\n        \"target_audience\": \"business owners\"\n    },\n    \"priority\": 7,\n    \"timeout\": 45000,\n    \"metadata\": {\n        \"campaign\": \"product-launch-2024\",\n        \"department\": \"marketing\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks"
+							]
+						},
+						"description": "Envía una tarea de generación de texto para ejecución asíncrona"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit HTTP Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n    \\\"type\\\": \\\"http_request\\\",\\n    \\\"description\\\": \\\"Fetch user profile from external API\\\",\\n    \\\"user_id\\\": \\\"user-001\\\",\\n    \\\"bot_id\\\": \\\"bot-001\\\",\\n    \\\"input\\\": {\\n        \\\"method\\\": \\\"GET\\\",\\n        \\\"url\\\": \\\"https://jsonplaceholder.typicode.com/users/1\\\",\\n        \\\"headers\\\": {\\n            \\\"Accept\\\": \\\"application/json\\\",\\n            \\\"User-Agent\\\": \\\"Bot-Service/1.0\\\"\\n        }\\n    },\\n    \\\"priority\\\": 5,\\n    \\\"timeout\\\": 30000\\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks"
+							]
+						},
+						"description": "Envía una tarea HTTP para ejecución asíncrona"
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Workflow Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n    \\\"type\\\": \\\"workflow\\\",\\n    \\\"description\\\": \\\"Execute customer onboarding workflow\\\",\\n    \\\"user_id\\\": \\\"user-001\\\",\\n    \\\"bot_id\\\": \\\"bot-001\\\",\\n    \\\"input\\\": {\\n        \\\"customer_name\\\": \\\"John Doe\\\",\\n        \\\"email\\\": \\\"john@example.com\\\",\\n        \\\"plan\\\": \\\"premium\\\"\\n    },\\n    \\\"priority\\\": 8,\\n    \\\"timeout\\\": 60000,\\n    \\\"metadata\\\": {\\n        \\\"workflow_type\\\": \\\"onboarding\\\",\\n        \\\"source\\\": \\\"signup_form\\\"\\n    }\\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks"
+							]
+						},
+						"description": "Envía una tarea de workflow para ejecución asíncrona"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/{{async_task_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"{{async_task_id}}"
+							]
+						},
+						"description": "Obtiene el estado y resultado de una tarea asíncrona"
+					},
+					"response": []
+				},
+				{
+					"name": "List Tasks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks?status=completed&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "completed"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista tareas asíncronas con filtros"
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Task",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/{{async_task_id}}/cancel",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"{{async_task_id}}",
+								"cancel"
+							]
+						},
+						"description": "Cancela una tarea asíncrona"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Task Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/tasks/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tasks",
+								"stats"
+							]
+						},
+						"description": "Obtiene estadísticas del sistema de tareas asíncronas"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gestión de tareas asíncronas"
+		},
+		{
+			"name": "🧠 Advanced MCP Features",
+			"item": [
+				{
+					"name": "Create Adapter Agent",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.agent_id) {",
+									"        pm.environment.set('adapter_agent_id', response.data.agent_id);",
+									"        console.log('Adapter Agent ID saved:', response.data.agent_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n    \\\"type\\\": \\\"adapter\\\",\\n    \\\"name\\\": \\\"Universal Integration Agent\\\",\\n    \\\"version\\\": \\\"1.0\\\",\\n    \\\"config\\\": {\\n        \\\"max_adapters\\\": 10,\\n        \\\"default_timeout\\\": 30000\\n    },\\n    \\\"capabilities\\\": [\\n        \\\"http_request\\\",\\n        \\\"api_call\\\",\\n        \\\"webhook\\\",\\n        \\\"integration\\\",\\n        \\\"adapter_management\\\"\\n    ],\\n    \\\"timeout\\\": 45000\\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"agents"
+							]
+						},
+						"description": "Crea un agente de adaptador para interoperabilidad avanzada"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Adapter Management Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n    \\\"type\\\": \\\"create_adapter\\\",\\n    \\\"description\\\": \\\"Create HTTP adapter for external API integration\\\",\\n    \\\"input\\\": {\\n        \\\"adapter_type\\\": \\\"http\\\",\\n        \\\"adapter_name\\\": \\\"external-api-adapter\\\",\\n        \\\"config\\\": {\\n            \\\"timeout\\\": \\\"30s\\\",\\n            \\\"default_headers\\\": {\\n                \\\"User-Agent\\\": \\\"Bot-Service-Adapter/1.0\\\",\\n                \\\"Accept\\\": \\\"application/json\\\"\\n            }\\n        }\\n    },\\n    \\\"priority\\\": 6\\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"tasks"
+							]
+						},
+						"description": "Ejecuta una tarea de gestión de adaptadores"
+					},
+					"response": []
+				},
+				{
+					"name": "List Available Adapters",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n    \\\"type\\\": \\\"list_adapters\\\",\\n    \\\"description\\\": \\\"List all available adapters\\\",\\n    \\\"input\\\": {},\\n    \\\"priority\\\": 3\\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"tasks"
+							]
+						},
+						"description": "Lista todos los adaptadores disponibles"
+					},
+					"response": []
+				},
+				{
+					"name": "Check Adapter Health",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n    \\\"type\\\": \\\"adapter_health\\\",\\n    \\\"description\\\": \\\"Check health status of all adapters\\\",\\n    \\\"input\\\": {},\\n    \\\"priority\\\": 4\\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"tasks"
+							]
+						},
+						"description": "Verifica el estado de salud de todos los adaptadores"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Advanced HTTP Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\\n    \\\"type\\\": \\\"http_request\\\",\\n    \\\"description\\\": \\\"Advanced HTTP request with custom configuration\\\",\\n    \\\"input\\\": {\\n        \\\"method\\\": \\\"POST\\\",\\n        \\\"url\\\": \\\"https://httpbin.org/post\\\",\\n        \\\"headers\\\": {\\n            \\\"Content-Type\\\": \\\"application/json\\\",\\n            \\\"X-Custom-Header\\\": \\\"test-value\\\",\\n            \\\"Authorization\\\": \\\"Bearer test-token\\\"\\n        },\\n        \\\"body\\\": {\\n            \\\"message\\\": \\\"Hello from Bot Service\\\",\\n            \\\"timestamp\\\": \\\"2024-01-15T10:00:00Z\\\",\\n            \\\"data\\\": {\\n                \\\"user_id\\\": \\\"user-001\\\",\\n                \\\"action\\\": \\\"test_request\\\"\\n            }\\n        },\\n        \\\"timeout\\\": 15000\\n    },\\n    \\\"priority\\\": 5\\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/mcp/tasks",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"mcp",
+								"tasks"
+							]
+						},
+						"description": "Ejecuta una solicitud HTTP avanzada con configuración personalizada"
+					},
+					"response": []
+				}
+			],
+			"description": "Funcionalidades avanzadas de MCP incluyendo adaptadores e interoperabilidad"
+		},
+		{
+			"name": "📊 Testing Scenarios",
+			"item": [
+				{
+					"name": "Complete Conversation Flow",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bot_id\": \"{{bot_id}}\",\n    \"user_id\": \"test-user-conversation\",\n    \"content\": \"hello\",\n    \"channel\": \"web\",\n    \"metadata\": {\n        \"test_scenario\": \"complete_flow\",\n        \"step\": 1\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/incoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"incoming"
+							]
+						},
+						"description": "Inicia una conversación completa para probar el flujo"
+					},
+					"response": []
+				},
+				{
+					"name": "Load Test - Multiple Messages",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bot_id\": \"{{bot_id}}\",\n    \"user_id\": \"load-test-user-{{$randomInt}}\",\n    \"content\": \"Mensaje de prueba de carga #{{$randomInt}}\",\n    \"channel\": \"web\",\n    \"metadata\": {\n        \"test_type\": \"load_test\",\n        \"timestamp\": \"{{$isoTimestamp}}\",\n        \"random_id\": \"{{$randomUUID}}\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/incoming",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"incoming"
+							]
+						},
+						"description": "Mensaje para pruebas de carga (ejecutar múltiples veces)"
+					},
+					"response": []
+				}
+			],
+			"description": "Escenarios de prueba específicos para validar funcionalidades"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set default values if not already set",
+					"if (!pm.environment.get('base_url')) {",
+					"    pm.environment.set('base_url', 'http://localhost:8080');",
+					"}",
+					"",
+					"// Log current environment",
+					"console.log('Base URL:', pm.environment.get('base_url'));",
+					"console.log('Bot ID:', pm.environment.get('bot_id'));",
+					"console.log('Flow ID:', pm.environment.get('flow_id'));",
+					"console.log('Step ID:', pm.environment.get('step_id'));"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test('Response time is less than 5000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"pm.test('Response has correct content type', function () {",
+					"    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+					"});",
+					"",
+					"// Log response for debugging",
+					"if (pm.response.code >= 400) {",
+					"    console.log('Error Response:', pm.response.text());",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "bot_id",
+			"value": "bot-001",
+			"type": "string"
+		},
+		{
+			"key": "flow_id",
+			"value": "flow-001",
+			"type": "string"
+		},
+		{
+			"key": "step_id",
+			"value": "step-001",
+			"type": "string"
+		}
+	]
+}
